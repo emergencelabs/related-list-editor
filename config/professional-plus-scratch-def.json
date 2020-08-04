@@ -1,0 +1,21 @@
+{
+  "orgName": "Emergence Labs",
+  "edition": "Professional",
+  "features": ["API", "AuthorApex", "DebugApex", "RecordTypes"],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "securitySettings": {
+      "passwordPolicies": {
+        "enableSetPasswordInApi": true
+      },
+      "sessionSettings": {
+        "sessionTimeout": "TwelveHours"
+      }
+    },
+    "mobileSettings": {
+      "enableS1EncryptedStoragePref2": false
+    }
+  }
+}
