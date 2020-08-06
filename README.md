@@ -1,6 +1,6 @@
 # Functionality Overview
 
-## ???
+## Supported Objects & Configuration
 
 ### Supported Parent Objects
 
@@ -12,9 +12,12 @@ Supported Child Objects are defined by what Child Objects Salesforce allows for 
 
 See [Editor Picklist Controller](#Editor-Picklist-Controller) for more information on how we attempt to ensure the user can only choose valid child options. However, since a supported Child Object may not be on the Page Layout the topmost client side Component will display an 'error' state if either an invalid object or a valid object not on the page layout is selected. Note that the only way to determine if a valid or invalid Child Object is on the page layout is to still make the REST API Request for the Describe of the Page Layout.
 
-### Column Definition
+### Column Configuration
 
-The columns displayed for a given Related List (regardless of display format) are determined by the columns included in the Related List in the Page Layout. !!How are these columns determined by SF??!!
+The columns displayed for a given Related List (regardless of display format) are determined by the columns included in the Related List in the Page Layout. !!How are these columns determined by SF??!! The system level information for these columns (readonly, etc) is respected in the client side editor as it is returned as part of the REST API Page Layout Describe.
+
+!!column widths need to be addressed someowhere in the client side docs!!
+!!FLA is an item here as well, with regards to respecting it on the client side - as far as I know the REST API call is made as the current User so ideally it will return back the isAccessible, etc info for that given user!!
 
 ### List Buttons (Not Supported)
 
@@ -31,6 +34,10 @@ At this point all list buttons are ignored and not supported in the editor.
 ### Mobile (Phone & Tablet)
 
 - tile view + view all (tile view still)
+
+# Project Scripts
+
+?worth including?
 
 # Namespace & Packaging Org
 
@@ -87,7 +94,7 @@ The fact that this is mandatory and how the selection gets input into the LWC co
 
 ### VF Page Controller for REST API Access
 
-This is a standard Apex Class used as a VisualForce Page Controller. The only public property on the class is to store the response from the REST API call to allow the VF page to access it. Once available on the VF page it is posted as a message to the parent window, more details found in [Visualforce Page REST Call Embed details](#REST-Call-Embed). More information on accessing the REST API and associated considerations can be found in [Professional Edition API Access](#Professional-Edition-API-Access). The endpoint accessed is the layout describe page for a given Object. The layout describe endpoint must end with a Record Type Id if the Object in question has Record Types. !!The API Response is different depending on if a Record Type Id is included - which makes me wonder if we should just always include it by of the default record type if there isn't one available!! More details on determining the Record Type Id (or lack thereof) for the current record is provided in [Some LWC Doc?](#replace-me).
+This is a standard Apex Class used as a VisualForce Page Controller. The only public property on the class is to store the response from the REST API call to allow the VF page to access it. Once available on the VF page it is posted as a message to the parent window, more details found in [Visualforce Page REST Call Embed details](#REST-Call-Embed). Additionally, see [Security Considerations](#Security-Considerations) around message posting. More information on accessing the REST API and associated considerations can be found in [Professional Edition API Access](#Professional-Edition-API-Access). The endpoint accessed is the layout describe page for a given Object. The layout describe endpoint must end with a Record Type Id if the Object in question has Record Types. !!The API Response is different depending on if a Record Type Id is included - which makes me wonder if we should just always include it by of the default record type if there isn't one available!! More details on determining the Record Type Id (or lack thereof) for the current record is provided in [Some LWC Doc?](#replace-me).
 
 There are three variable pieces of information included in the endpoint URL which are passed to the Apex Class by way of URL parameters on the VF Page:
 
@@ -137,6 +144,12 @@ The current theory here is that sending POJOs of the updated Objects to the Clas
 
 TBD.
 
+## Visualforce Page
+
+### REST Call Embed
+
+VF page iframed in makes REST API call to get page layout information, posts it to the LWC that contains and renders the iframe. This iframe is created for each 'Related List Editor' parent component that is added to the Lightning Page. At this point this doesn't cause concern about an excess of iframes on the page as you simply can't add _that_ many lists to the page. Additionally the VF page uses url params to determine what to pass to the REST API request so each list needs it's own call.
+
 ## Aura Component
 
 ### View All List Container (needs better name)
@@ -148,8 +161,11 @@ This is the component that is URL addressable and is used for 2 purposes:
 
 It's sole purpose is to be navigable via a URL and depending on certain pieces of info render out the same LWC hierarchy as might exist elsewhere.
 
+On mobile its still a tile layout but with more records displayed and on desktop it is the 'table inline edit view'.
+
 It relies on the Record Id of the target record as well as !!a maybe changing amount of information about the list depending on which LWC it renders!!
 !!what is the deal with limits here for display and fetching more?!!
+!!also wtf is going on with the navigation issues here as well as the 'new' button issue??!!
 
 ## Lightning Web Components
 
@@ -157,19 +173,59 @@ It relies on the Record Id of the target record as well as !!a maybe changing am
 
 (likely going to be named 'Related List Editor'). This is where all the XML configuration lives specifying the form factors, establishing the relationship to the picklist controller, etc.
 
-## Visualforce Page
-
-### REST Call Embed
-
-VF page iframed in makes REST API call to get page layout information, posts it to the LWC that contains and renders the iframe. This iframe is created for each 'Related List Editor' parent component that is added to the Lightning Page. At this point this doesn't cause concern about an excess of iframes on the page as you simply can't add _that_ many lists to the page. Additionally the VF page uses url params to determine what to pass to the REST API request so each list needs it's own call.
-
 Small screen real estate either flexiPageRegionWidth of 'small' or device being mobile (tablet or phone) will cause the rendering to be a 'tile view' of the records. Limited to X? displayed initially with a 'View all' button that will take you to the larger list. How the larger list is handled on mobile in cases of
 
-## Standalone URL Addressable Component
+**Component Configuration**
 
-This acts as its own page for 'View All' with small real estate or mobile. On mobile its still a tile layout but with more records displayed and on desktop it is the 'table inline edit view'.
+**Lightning Page Picklist Selection Handling**
+For more details on the options and production of the JSON string see [Editor Picklist Controller](#Editor-Picklist-Controller)
 
-Thinking about it as a big ass form.
+**VisualForce Page URL Generation**
+Using the `window.location.origin` to parse out the 'My Domain' value along with standard VF Page URL structure to build up a dynamic URL for a given org.
+
+!!this I believe is the same approach used in the 'Success Desk' implementation which we have seen used without issues so I believe it's relatively battle tested but not 100%!!
+!!theres also I think a concern here that needs to be error handlewd that was highlighted with success desk and iframe rendering issues with cookies or something, it was a Cupanion user that experienced it!!
+
+**Page Layout Desribe API Response Parsing**
+When the component is mounted it attaches an event listener to the window to listen for the message from the iframed in VF page. The message is passed a JSON string so parsing (and error handling) is required.
+
+!!include example response data structure for reference somewhere in this project!!
+
+There are two categories of data that are used throughout the component hierarchy:
+
+- From API
+  - sortDetails : Object
+  - requiredFields : Array<Object>
+  - columns : Array<Object>
+    -
+- From Component
+  - label : String
+    - The label to displayed on the component for the Child Object. This is the plural label of the Child Object.
+  - object : String
+    - The API Name of the Child Object.
+  - relationshipField : String
+    - The API Name of the relationship field between Parent and Child Object.
+  - recordTypeId : String
+    - The Child Object record Type Id? !!what is this used for? creating?!!
+    - !!begs a good question about child record type creation issues!!
+  - iconName : String
+    - A string matching the format expected by the `lightning-icon` base component
+    - Discussed in [Component Ref?](#replace-me) and [Icon Service](#Icon-Service)
+
+See [Security Considerations](#Security-Considerations) for considerations around message posting.
+
+**Layout Info**
+import FORM_FACTOR from "@salesforce/client/formFactor";
+
+- Large — A desktop client.
+- Medium — A tablet client.
+- Small — A phone client.
+
+@api flexipageRegionWidth;
+
+- SMALL
+- MEDIUM
+- LARGE
 
 # Security Considerations
 
