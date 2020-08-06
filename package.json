@@ -4,6 +4,11 @@
   "version": "1.0.0",
   "description": "Salesforce App",
   "scripts": {
+    "open": "sfdx force:org:open",
+    "create": "sfdx force:org:create -h",
+    "dev": "npm run push",
+    "push": "sfdx force:source:push -f",
+    "pull": "sfdx force:source:pull",
     "lint": "npm run lint:lwc && npm run lint:aura",
     "lint:aura": "eslint **/aura/**",
     "lint:lwc": "eslint **/lwc/**",
