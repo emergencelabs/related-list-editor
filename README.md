@@ -175,10 +175,30 @@ It relies on the Record Id of the target record as well as !!a maybe changing am
 
 Small screen real estate either flexiPageRegionWidth of 'small' or device being mobile (tablet or phone) will cause the rendering to be a 'tile view' of the records. Limited to X? displayed initially with a 'View all' button that will take you to the larger list. How the larger list is handled on mobile in cases of
 
+**Error States**
+
+1. Bad list selection or unavailable on Page Layout or List Parse Error
+2. Suggest new browser usage or cookie clearing?
+
+!! should likely use a custom error boundary in combination with a custom render method to match up error codes with error renders - we can then somehow log these errors so we can keep track of them!!
+
 **Component Configuration**
 
+    <targets>
+            <target>lightning__RecordPage</target>
+      </targets>
+      <targetConfigs>
+          <targetConfig targets="lightning__RecordPage">
+              <property label="Related List" name="listSelection" type="String" datasource="apex://editorPicklistValues" />
+              <supportedFormFactors>
+                  <supportedFormFactor type="Large" />
+                  <supportedFormFactor type="Small" />
+              </supportedFormFactors>
+          </targetConfig>
+      </targetConfigs>
+
 **Lightning Page Picklist Selection Handling**
-For more details on the options and production of the JSON string see [Editor Picklist Controller](#Editor-Picklist-Controller)
+For more details on the options and production of the JSON string see [Editor Picklist Controller](#Editor-Picklist-Controller). Errors caught here render error state #1.
 
 **VisualForce Page URL Generation**
 Using the `window.location.origin` to parse out the 'My Domain' value along with standard VF Page URL structure to build up a dynamic URL for a given org.
@@ -186,18 +206,35 @@ Using the `window.location.origin` to parse out the 'My Domain' value along with
 !!this I believe is the same approach used in the 'Success Desk' implementation which we have seen used without issues so I believe it's relatively battle tested but not 100%!!
 !!theres also I think a concern here that needs to be error handlewd that was highlighted with success desk and iframe rendering issues with cookies or something, it was a Cupanion user that experienced it!!
 
+Errors caught here render error state #2.
+
+**Child Object Info**
+Acquired using the OOB @wire of 'getObjectInfo' with the Child Object API Name. Within the returned `data` there is a `fields` array of all fields and associated details for the Child Object.
+
+!!need to consider this message posting race condition with childObjectInfo wire - likely going to be that the parent component gets the posted message and gives it to a child which wires up the childObjectInfo as its not needed in any case where theres a list error - although fetching these sequentially as opposed to concurrently is not great for load times!!
+
 **Page Layout Desribe API Response Parsing**
 When the component is mounted it attaches an event listener to the window to listen for the message from the iframed in VF page. The message is passed a JSON string so parsing (and error handling) is required.
 
-!!include example response data structure for reference somewhere in this project!!
+Example responses for both with and without record types can be found in `/api-response-examples/`
 
+!!the response contains a 'limitRows' value for each related list so we may want to use this? although maybe not!!
+
+1. The target related list needs to be found in the Array at the 'relatedLists' key and this can be done by comparing each list entry's 'sobject' and 'field' keys to the Child Object API name and the Relationship Field.
+2. Extracted from the target related list:
+   - sortDetails : Object
+     - Keys for 'column' : String (Field API Name) and 'ascending' : Boolean
+   - columns : Array<Object>
+     - This determines the columns that will be rendered out for each child record and the field API name is used to lookup the field details from the Child Object Info.
+     - If the column is for a lookup/reference field then a normalization of the api name needs to occur if its an OOB lookup/reference. User created reference fields follow standard naming conventions and will match properly in the lookup.
+       - This is done by a check of if the field API name contains a '.' and removing it.
+
+**???**
 There are two categories of data that are used throughout the component hierarchy:
 
 - From API
   - sortDetails : Object
-  - requiredFields : Array<Object>
   - columns : Array<Object>
-    -
 - From Component
   - label : String
     - The label to displayed on the component for the Child Object. This is the plural label of the Child Object.
@@ -208,6 +245,8 @@ There are two categories of data that are used throughout the component hierarch
   - recordTypeId : String
     - The Child Object record Type Id? !!what is this used for? creating?!!
     - !!begs a good question about child record type creation issues!!
+  - requiredFields : Array<Object>
+    - The child object info includes the list of all child object fields and this is a filtered list of all fields that are 'required' and 'creatable'. The assumption is that if a field is 'required' but not 'creatable' then it is a system-level field.
   - iconName : String
     - A string matching the format expected by the `lightning-icon` base component
     - Discussed in [Component Ref?](#replace-me) and [Icon Service](#Icon-Service)
@@ -226,6 +265,11 @@ import FORM_FACTOR from "@salesforce/client/formFactor";
 - SMALL
 - MEDIUM
 - LARGE
+
+### ???
+
+the form factor can be found anywhere but the page region width is only given to the topmost component in the
+hierarchy and passing it down all the levels kind of sucks but
 
 # Security Considerations
 
