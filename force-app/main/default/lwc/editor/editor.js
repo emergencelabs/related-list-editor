@@ -147,7 +147,6 @@ export default class Editor extends LightningElement {
       relationshipField: this.relationshipField,
       columns: targetList.columns.map((col) => {
         let { fieldApiName, lookupId, label } = col;
-        window.console.log({ col });
         let normalizedApiName = fieldApiName;
         if (fieldApiName.includes(".")) {
           normalizedApiName = lookupId.replace(".", "");

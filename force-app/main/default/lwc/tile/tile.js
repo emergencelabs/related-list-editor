@@ -22,7 +22,6 @@ export default class Tile extends NavigationMixin(LightningElement) {
   // TODO: sort out the deal with reference fields here - will it always be Name???
   get fields() {
     if (this.record) {
-      window.console.log(JSON.parse(JSON.stringify(this.columns)));
       return this.columns
         .map((c) => ({
           apiName: c.fieldName,
@@ -60,7 +59,6 @@ export default class Tile extends NavigationMixin(LightningElement) {
 
   closeModal({ detail: { isSave } }) {
     if (isSave) {
-      window.console.log("tile delete");
       this.dispatchEvent(
         new CustomEvent("requestdelete", {
           detail: { childObject: this.record }

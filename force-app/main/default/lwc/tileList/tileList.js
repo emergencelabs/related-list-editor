@@ -26,7 +26,6 @@ export default class TileList extends NavigationMixin(LightningElement) {
   }
 
   requestDelete({ detail: { childObject } }) {
-    window.console.log("tile list delete");
     this.dispatchEvent(
       new CustomEvent("requestdelete", {
         detail: { childObject }

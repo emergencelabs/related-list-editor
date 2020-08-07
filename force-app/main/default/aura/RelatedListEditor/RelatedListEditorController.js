@@ -15,7 +15,6 @@
       relationshipField
     });
 
-    window.console.log($A.get("$Browser.formFactor"));
     if ($A.get("$Browser.formFactor") === "DESKTOP") {
       cmp.set("v.showBackButton", true);
     } else {
@@ -26,12 +25,11 @@
     $A.get("e.force:refreshView").fire();
   },
   backToRecord: function (cmp, event) {
-    window.console.log("navigating!!!");
     let navEvt = $A.get("e.force:navigateToSObject");
     navEvt.setParams({
       recordId: cmp.get("v.recordId")
     });
-    window.console.log("rec id!!!", cmp.get("v.recordId"));
+
     navEvt.fire();
   }
 });
