@@ -290,7 +290,7 @@ hierarchy and passing it down all the levels kind of sucks but
 
 # General Considerations & TODOs
 
-- add to the editor input whether to allow inline delete? what else? could also allow disable full edit and only do the inline click
+- add to the editor input whether to allow inline delete? what else? could also allow disable full edit and only do the inline click, also maybe number of records to show per request?
 - need to consider what happens if you're in edit mode and then you delete a record and you have made changes to other records (how did we handle that before? I think just filter that record out of the list, maybe should do that as opposed to a full re-fetching of records)
 - need to consider what infinite scroll will look like in requesting more records from parent in a way that doesnt lose scroll (if an @api records value changes will the whole thing re-render to top)?
 - with layout mode 1 (standalone mobile) how do we deal with limits?
@@ -298,3 +298,9 @@ hierarchy and passing it down all the levels kind of sucks but
   requests which means that the table column sorting will have to either lose scroll position and reset it with new results Offset 0 to the new order by or will have to only sort the currently available client side items but then the offset ones could be out of order so you cant do that, makes sense as the default list view requeries it
 - are we binding to record type ids as a dependency if we have it in the apex code?
 - when to augment each retrieved child record with record type id (maybe find a way to only have to do the 1 check if it comes back as no types exist)
+- so the default list view if you have some unsaved edits and try to sort tells you that you'll lose your changes if you sort before saving (could be nice to do like a 'save, then sort' thing)
+- need to ensure either a row level action exists to go to record so that its available in edit or view mode and in view mode it would be good to set the name field if present as the link
+- will the tile view break if you remove the name field from the related list? can you do that?
+- if you use the default related list enhanced and you change the sort, it persists, and applies it to the current page layout
+- maybe the best way to is let people do a manual table refresh?
+- going to need to likely add to the formatted display options for shit like booleans

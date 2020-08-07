@@ -142,29 +142,61 @@ export default class Editor extends LightningElement {
     return "standard:default";
   }
 
+  actions = [
+    { label: "View", value: "view", iconName: "utility:preview" },
+    { label: "Edit", value: "edit", iconName: "utility:edit" },
+    { label: "Delete", value: "delete", iconName: "utility:delete" }
+  ];
+
   // TODO: can this be removed in favor of its individual parts?
   populateListInfo(targetList) {
+    let columns = targetList.columns.map((col) => {
+      let { fieldApiName, lookupId, label } = col;
+      let normalizedApiName = fieldApiName;
+      if (fieldApiName.includes(".")) {
+        normalizedApiName = lookupId.replace(".", "");
+      }
+      let fieldDetail = this.childFields[normalizedApiName];
+      let clone = { ...fieldDetail };
+      delete clone.fieldName;
+      return {
+        label,
+        type: "input",
+        typeAttributes: {
+          type: "text",
+          fieldDetail: clone,
+          rowId: { fieldName: "Id" },
+          referenceValue: fieldDetail.relationshipName
+            ? {
+                fieldName: fieldDetail.relationshipName
+              }
+            : null,
+          objectApiName: this.objectApiName
+          // recordTypeId: this.listInfo.recordTypeId,
+          // isModal: this.isModal || this.isOwnPage
+        },
+        fieldName: fieldApiName,
+        fieldDetail,
+        lookupId,
+        sortable: true
+      };
+    });
+    if (this.isTableLayout) {
+      columns = [
+        ...columns,
+        {
+          type: "action",
+          typeAttributes: { rowActions: this.actions, menuAlignment: "auto" }
+        }
+      ];
+    }
     return {
       listLabel: this.listLabel,
       childObjectApiName: this.childObjectApiName,
       childRecordTypeInfo: null,
       sortDetails: targetList.sort[0],
       relationshipField: this.relationshipField,
-      columns: targetList.columns.map((col) => {
-        let { fieldApiName, lookupId, label } = col;
-        let normalizedApiName = fieldApiName;
-        if (fieldApiName.includes(".")) {
-          normalizedApiName = lookupId.replace(".", "");
-        }
-        let fieldDetail = this.childFields[normalizedApiName];
-        return {
-          label,
-          fieldName: fieldApiName,
-          fieldDetail,
-          lookupId,
-          sortable: true
-        };
-      })
+      columns
     };
   }
 
@@ -246,20 +278,24 @@ export default class Editor extends LightningElement {
     }
   }
 
+  @track refreshingTable = false;
+  // TODO: need to potentially modify the layoutModeLimit as well as the table container height
+  // if standalone desktop
   updateColumnSorting(event) {
     var fieldName = event.detail.fieldName;
     var sortDirection = event.detail.sortDirection;
     // assign the latest attribute with the sorted column fieldName and sorted direction
     let t = event.target;
+    t.findElement().scrollTop = 0;
     t.sortedBy = fieldName;
     t.sortedDirection = sortDirection;
     this.currentOffset = 0;
-    t.isLoading = true;
+    this.refreshingTable = true;
     let sortString = `ORDER BY ${fieldName} ${sortDirection.toUpperCase()} NULLS LAST`;
     this.getChildRecords(
       this.buildQueryString(this.currentOffset, sortString)
     ).then((records) => {
-      t.isLoading = false;
+      this.refreshingTable = false;
       this.records = records;
       this.canRequestMore = !!this.records.length;
       t.enableInfiniteLoading = this.canRequestMore;
@@ -271,6 +307,22 @@ export default class Editor extends LightningElement {
       return this.relatedListInfo.sort[0].ascending ? "asc" : "desc";
     }
     return null;
+  }
+
+  handleRowAction(event) {
+    const action = event.detail.action;
+    const row = event.detail.row;
+    //     switch (action.name) {
+    //         case 'show_details':
+    //             alert('Showing Details: ' + JSON.stringify(row));
+    //             break;
+    //         case 'delete':
+    //             const rows = this.data;
+    //             const rowIndex = rows.indexOf(row);
+    //             rows.splice(rowIndex, 1);
+    //             this.data = rows;
+    //             break;
+    // }
   }
 
   async deleteChildRecord(childObject) {

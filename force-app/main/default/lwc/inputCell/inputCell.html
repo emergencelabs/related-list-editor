@@ -1,0 +1,31 @@
+<template>
+  <div style="padding: 5px 10px;" class={containerClasses}>
+    <template if:false={isEditing}>
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <template if:false={isNameField}>
+          <a if:true={link} href={link}>{referenceValue.Name}</a>
+          <c-formatted-tile-value
+            if:false={link}
+            value={value}
+            field-type={fieldDetail.dataType}
+          ></c-formatted-tile-value>
+        </template>
+        <template if:true={isNameField}>
+          <a href={nameLink}>{value}</a>
+        </template>
+        <!-- <span>{value}</span> -->
+        <lightning-button-icon
+          variant="bare"
+          icon-name={accessIconName}
+          if:true={isHovering}
+        ></lightning-button-icon>
+      </div>
+    </template>
+  </div>
+</template>
