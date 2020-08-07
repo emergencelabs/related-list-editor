@@ -28,9 +28,6 @@ export default class Application extends LightningElement {
   childObjectInfo;
 
   get canRenderEditor() {
-    if (this.childObjectInfo && this.childObjectInfo.data) {
-      window.console.log(JSON.stringify(this.childObjectInfo.data, null, 2));
-    }
     return this.relatedListInfo && this.childObjectInfo.data;
   }
 

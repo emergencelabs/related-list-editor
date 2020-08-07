@@ -1,0 +1,37 @@
+<template>
+  <div
+    class="slds-card"
+    style="
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      border-top: none;
+    "
+  >
+    <div class="slds-p-top_small slds-p-bottom_small">
+      <ul>
+        <template for:each={records} for:item="record">
+          <li
+            class="slds-var-p-horizontal_medium slds-var-p-vertical_xx-small"
+            key={record.id}
+          >
+            <c-tile
+              icon-name={iconName}
+              record={record}
+              columns={columns}
+              object-api-name={objectApiName}
+            ></c-tile>
+          </li>
+        </template>
+      </ul>
+    </div>
+    <div class="slds-card__footer">
+      <div>
+        <lightning-button
+          variant="base"
+          onclick={viewAll}
+          label="View All"
+        ></lightning-button>
+      </div>
+    </div>
+  </div>
+</template>

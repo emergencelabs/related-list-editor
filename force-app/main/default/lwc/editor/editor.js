@@ -1,5 +1,6 @@
 import { LightningElement, api, track } from "lwc";
 import getIconURL from "@salesforce/apex/IconService.getIconURL";
+import getChildRecords from "@salesforce/apex/ChildRecordService.getChildRecords";
 
 // this required field situation needs to be sorted out for name fields
 // if a compound name field is in here and not that one then you can't edit inline?
@@ -18,6 +19,8 @@ export default class Editor extends LightningElement {
 
   @track iconName;
   @track columnDetails;
+
+  @track records = [];
 
   @track modalIsOpen = false;
   launchModal() {
@@ -39,6 +42,10 @@ export default class Editor extends LightningElement {
     return !this.isStandalone && this.layoutMode > 1;
   }
 
+  get isTileLayout() {
+    return this.layoutMode === 1 || this.layoutMode === 2;
+  }
+
   get requiredFields() {
     if (this.childFields) {
       return Object.values(this.childFields).filter(
@@ -54,10 +61,10 @@ export default class Editor extends LightningElement {
   get requireNewModal() {
     let missingFields = this.requiredFields
       .map((requiredField) => requiredField.apiName)
-      .filter((requiredField) => {
+      .filter((requiredFieldApiName) => {
         return (
           this.relatedListInfo.columns.filter(
-            (columnField) => columnField.name === requiredField
+            (columnField) => columnField.name === requiredFieldApiName
           ).length === 0
         );
       });
@@ -67,14 +74,10 @@ export default class Editor extends LightningElement {
   get reasonForNewModal() {
     if (this.requireNewModal) {
       return `The following required fields are not in the column list: ${this.requiredFields
-        .map((requiredField, index, list) => {
-          let label = requiredField.label;
-          if (index !== list.length - 1) {
-            return `${label}, `;
-          }
+        .map(({ label }) => {
           return label;
         })
-        .join("")}`;
+        .join(", ")}`;
     }
     return null;
   }
@@ -139,9 +142,31 @@ export default class Editor extends LightningElement {
     };
   }
 
+  buildQueryString() {
+    let sortString = ` ORDER BY ${this.relatedListInfo.sort[0].column} ${
+      this.relatedListInfo.sort[0].ascending ? "ASC" : "DESC"
+    }`;
+    let queryString = `SELECT Id, ${this.relatedListInfo.columns
+      .map((c) => c.fieldApiName)
+      .join(", ")} FROM ${this.childObjectApiName} WHERE ${
+      this.relationshipField
+    } = '${this.recordId}'${sortString}`;
+    window.console.log(queryString);
+    return queryString;
+  }
+
+  async getChildRecords(queryString) {
+    return getChildRecords({ queryString });
+  }
+
   async connectedCallback() {
-    this.iconName = await this.fetchIcon();
     this.columnDetails = this.populateListInfo(this.relatedListInfo);
-    window.console.log(JSON.parse(JSON.stringify(this.columnDetails)));
+    let [records, iconName] = await Promise.all([
+      this.getChildRecords(this.buildQueryString()),
+      this.fetchIcon()
+    ]);
+    this.iconName = iconName;
+    this.records = records;
+    window.console.log(JSON.parse(JSON.stringify(this.records)));
   }
 }

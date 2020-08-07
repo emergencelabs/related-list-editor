@@ -1,0 +1,50 @@
+<template>
+  <lightning-tile
+    href={childRecordUrl}
+    label={recordName}
+    type="media"
+    actions={actions}
+    onactiontriggered={handleAction}
+  >
+    <span slot="media">
+      <lightning-icon
+        icon-name={iconName}
+        alternative-text="some icon"
+        size="small"
+      >
+      </lightning-icon>
+    </span>
+    <dl class="slds-list_horizontal slds-wrap">
+      <template for:each={fields} for:item="field">
+        <dt
+          class="slds-item_label slds-text-color_weak slds-truncate"
+          title={field.label}
+          key={field.apiName}
+        >
+          {field.label}:
+        </dt>
+        <dd
+          class="slds-item_detail slds-truncate"
+          title={field.value}
+          key={field.value}
+        >
+          {field.value}
+        </dd>
+      </template>
+    </dl>
+  </lightning-tile>
+  <template if:true={needsConfirmation}>
+    <c-slotted-modal
+      modal-title={confirmationModalTitle}
+      onclose={closeModal}
+      save-button-label="Delete"
+      save-button-variant="destructive"
+    >
+      <div>
+        <p class="slds-align_absolute-center slds-m-bottom_small">
+          Are you sure you want to delete this {objectApiName}?
+        </p>
+      </div>
+    </c-slotted-modal>
+  </template>
+</template>

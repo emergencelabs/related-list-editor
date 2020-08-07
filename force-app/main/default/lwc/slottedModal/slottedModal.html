@@ -9,7 +9,7 @@
   >
     <div class="slds-modal__container">
       <header class="slds-modal__header">
-        <h2 class="slds-modal__title slds-hyphenate">{listLabel}</h2>
+        <h2 class="slds-modal__title slds-hyphenate">{modalTitle}</h2>
       </header>
       <div class="slds-modal__content">
         <slot></slot>
@@ -21,9 +21,9 @@
           label="Cancel"
         ></lightning-button>
         <lightning-button
-          variant="brand"
+          variant={saveButtonVariant}
           onclick={save}
-          label="Save"
+          label={saveButtonLabel}
           class="slds-m-left_small"
         ></lightning-button>
       </footer>

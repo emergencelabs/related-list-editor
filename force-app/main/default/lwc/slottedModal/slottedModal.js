@@ -1,7 +1,9 @@
 import { LightningElement, api } from "lwc";
 
 export default class SlottedModal extends LightningElement {
-  @api listLabel;
+  @api modalTitle;
+  @api saveButtonLabel = "Save";
+  @api saveButtonVariant = "brand";
 
   cancel() {
     this.close(false);
