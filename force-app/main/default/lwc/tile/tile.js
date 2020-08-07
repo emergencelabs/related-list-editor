@@ -19,13 +19,22 @@ export default class Tile extends NavigationMixin(LightningElement) {
     return this.record[this.nameField];
   }
 
+  // TODO: sort out the deal with reference fields here - will it always be Name???
   get fields() {
     if (this.record) {
       return this.columns
         .map((c) => ({
           apiName: c.fieldName,
           label: c.label,
-          value: this.record[c.fieldName]
+          dataType: c.fieldDetail.dataType,
+          value: c.fieldDetail.relationshipName
+            ? this.record[c.fieldDetail.relationshipName].Name
+            : this.record[c.fieldName],
+          link: c.fieldDetail.relationshipName
+            ? `/lightning/r/${
+                this.record[c.fieldDetail.relationshipName].Id
+              }/view`
+            : null
         }))
         .filter((f) => f.apiName !== this.nameField);
     }

@@ -28,7 +28,13 @@
           title={field.value}
           key={field.value}
         >
-          {field.value}
+          <a if:true={field.link} href={field.link}>{field.value}</a>
+
+          <c-formatted-tile-value
+            if:false={field.link}
+            value={field.value}
+            field-type={field.dataType}
+          ></c-formatted-tile-value>
         </dd>
       </template>
     </dl>

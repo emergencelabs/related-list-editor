@@ -60,6 +60,9 @@ export default class Editor extends LightningElement {
   }
 
   get requireNewModal() {
+    if (this.isTileLayout) {
+      return true;
+    }
     let missingFields = this.requiredFields
       .map((requiredField) => requiredField.apiName)
       .filter((requiredFieldApiName) => {
@@ -73,7 +76,7 @@ export default class Editor extends LightningElement {
   }
 
   get reasonForNewModal() {
-    if (this.requireNewModal) {
+    if (this.requireNewModal && !this.isTileLayout) {
       return `The following required fields are not in the column list: ${this.requiredFields
         .map(({ label }) => {
           return label;
@@ -133,8 +136,7 @@ export default class Editor extends LightningElement {
         }
         let fieldDetail = this.childFields[normalizedApiName];
         return {
-          label:
-            fieldDetail.dataType !== "Reference" ? fieldDetail.label : label,
+          label,
           fieldName: fieldApiName,
           fieldDetail,
           lookupId
