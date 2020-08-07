@@ -1,0 +1,15 @@
+<template>
+  <template if:false={error}>
+    <c-application
+      flexipage-region-width={flexipageRegionWidth}
+      record-id={recordId}
+      object-api-name={objectApiName}
+      list-selection={listSelection}
+    ></c-application>
+  </template>
+  <template if:true={error}>
+    <p>Aw fuck there's an error!</p>
+    <p>{error}</p>
+    <p>{stack}</p>
+  </template>
+</template>

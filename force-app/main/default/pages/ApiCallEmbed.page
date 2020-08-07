@@ -1,0 +1,10 @@
+<apex:page controller="ApiCallEmbedController">
+  <h1>Nothing to see here.</h1>
+  <apex:outputText value="{!pageLayoutDescribeResponse}" />
+  <script>
+    let targetWindow = window.parent;
+    if (targetWindow) {
+      targetWindow.postMessage(`{!pageLayoutDescribeResponse}`.replace(/\s+/g, ''), "{!targetOrigin}");
+    }
+  </script>
+</apex:page>

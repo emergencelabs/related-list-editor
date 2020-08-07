@@ -1,0 +1,32 @@
+<template>
+  <div if:false={listSelection} class="slds-box slds-theme_default">
+    <p>Please select your desired related list to edit.</p>
+  </div>
+
+  <template if:true={listSelection}>
+    <c-loading if:true={loading}></c-loading>
+    <iframe
+      if:true={allowApiRequest}
+      src={vfPageUrl}
+      width="0"
+      height="0"
+      style="display: none;"
+    ></iframe>
+    <template if:false={loading}>
+      <c-editor
+        if:true={canRenderEditor}
+        layout-mode={layoutMode}
+        is-standalone={isStandalone}
+        record-id={recordId}
+        object-api-name={objectApiName}
+        related-list-info={relatedListInfo}
+        child-fields={childObjectInfo.data.fields}
+        child-record-type-info={childObjectInfo.data.recordTypeInfos}
+      ></c-editor>
+      <c-warning
+        if:false={relatedListInfo}
+        list-name={listNameText}
+      ></c-warning>
+    </template>
+  </template>
+</template>

@@ -1,0 +1,33 @@
+<template>
+  <button
+    onclick={viewAll}
+    style="width: 100%; background: none; border: none; padding: 0;"
+  >
+    <div
+      class="slds-box slds-theme_default"
+      style="
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        border: none;
+      "
+    >
+      <div style="display: flex; align-items: center;">
+        <lightning-icon icon-name={iconName} size="small"></lightning-icon>
+        <h2 class="slds-card__header-title slds-m-left_medium">
+          <span class="slds-card__header-link baseCard__header-title-container"
+            ><span class="slds-truncate slds-m-right--xx-small" title={listName}
+              >{listName}</span
+            ><span class="slds-shrink-none slds-m-right--xx-small" title={count}
+              >({count})</span
+            ></span
+          >
+        </h2>
+      </div>
+      <lightning-icon
+        icon-name="utility:chevronright"
+        size="x-small"
+      ></lightning-icon>
+    </div>
+  </button>
+</template>

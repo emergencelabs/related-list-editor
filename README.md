@@ -94,6 +94,8 @@ The fact that this is mandatory and how the selection gets input into the LWC co
 
 ### VF Page Controller for REST API Access
 
+!!how we do know what api version to use for this and for LWC? can it just be whatever is latest when we release??!!
+
 This is a standard Apex Class used as a VisualForce Page Controller. The only public property on the class is to store the response from the REST API call to allow the VF page to access it. Once available on the VF page it is posted as a message to the parent window, more details found in [Visualforce Page REST Call Embed details](#REST-Call-Embed). Additionally, see [Security Considerations](#Security-Considerations) around message posting. More information on accessing the REST API and associated considerations can be found in [Professional Edition API Access](#Professional-Edition-API-Access). The endpoint accessed is the layout describe page for a given Object. The layout describe endpoint must end with a Record Type Id if the Object in question has Record Types. !!The API Response is different depending on if a Record Type Id is included - which makes me wonder if we should just always include it by of the default record type if there isn't one available!! More details on determining the Record Type Id (or lack thereof) for the current record is provided in [Some LWC Doc?](#replace-me).
 
 There are three variable pieces of information included in the endpoint URL which are passed to the Apex Class by way of URL parameters on the VF Page:
@@ -108,8 +110,14 @@ A simple class with a singular Aura Enabled method that uses SOQL to query the `
 
 ### Record Type Service
 
-Another simple class with a singular Aura Enabled method that accepts an Object API Name and a Record Id. It uses this information to build up a query string that contains the column 'RecordTypeId'. If the Object in question does not have Record Types than this throws an `System.QueryException` error !!need to ensure checking if it's that error and handling other error types accordingly!!. This query is made treating the results as a generic SObject to ensure all supported Object types work. The query may be successful but the value of the 'RecordTypeId' field may be blank as it is possible to have Record Types set up but not assigned for each and every record. If the value is `null` then this record's Record Type Id is the default/master Record Type Id. This is found (only if no query exception and the field is null) by describing the Object and looping over all the possible RecordTypeInfo's until the one with the 'Developer Name' of 'Master' is found (this developer name cannot be changed so it is a sound approach, the only way it would need to be changed is if SF changes it at the System level).
-!!there's also a consideration here where `null` is returned from the method because the master wasnt found?!!
+Another simple class with a singular Aura Enabled method that accepts an Object API Name and a Record Id. It uses this information to build up a query string that contains the column 'RecordTypeId'. This query is made treating the results as a generic SObject to ensure all supported Object types work.
+
+The query may be successful but the value of the 'RecordTypeId' field may be blank as it is possible to have Record Types set up but not assigned for each and every record. If the value is `null` then this record's Record Type Id is the default/master Record Type Id. This is found (only if no query exception and the field is null) by describing the Object and looping over all the possible RecordTypeInfo's until the one with the 'Developer Name' of 'Master' is found (this developer name cannot be changed so it is a sound approach, the only way it would need to be changed is if SF changes it at the System level).
+
+If the Object in question does not have Record Types than this throws an `System.QueryException` error which is specifically caught. If caught, the default record type is returned just as described above.
+
+!!It seems as if the master record type id is the same across all objects and all instances???!!
+
 !!there's the possibility that this is better acquired on the LWC side through a OOB @wire method given the considerations outlined in [VF Page Controller for REST API Access](VF-Page-Controller-for-REST-API-Access)!!
 
 ### Child Record Service
@@ -146,7 +154,7 @@ TBD.
 
 ## Visualforce Page
 
-### REST Call Embed
+### API Call Embed
 
 VF page iframed in makes REST API call to get page layout information, posts it to the LWC that contains and renders the iframe. This iframe is created for each 'Related List Editor' parent component that is added to the Lightning Page. At this point this doesn't cause concern about an excess of iframes on the page as you simply can't add _that_ many lists to the page. Additionally the VF page uses url params to determine what to pass to the REST API request so each list needs it's own call.
 
