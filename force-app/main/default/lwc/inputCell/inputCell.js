@@ -9,7 +9,7 @@ export default class InputCell extends LightningElement {
   @api referenceValue;
   @api objectApiName;
   @api recordTypeId;
-  @api isModal = false;
+  @api defaultEdit = false;
 
   @track editing = false;
   @track isHovering = false;
@@ -38,6 +38,8 @@ export default class InputCell extends LightningElement {
   }
 
   connectedCallback() {
+    this.editing = this.defaultEdit;
+
     this.addEventListener("mouseenter", () => {
       this.isHovering = true;
     });

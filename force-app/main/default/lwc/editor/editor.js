@@ -42,9 +42,26 @@ export default class Editor extends LightningElement {
   @track modalIsOpen = false;
   launchModal() {
     this.modalIsOpen = true;
+    this.columnDetails = {
+      ...this.columnDetails,
+      columns: this.columnDetails.columns.map((detail) => {
+        let clone = { ...detail };
+        clone.typeAttributes.defaultEdit = this.modalIsOpen;
+        return clone;
+      })
+    };
   }
   closeModal({ detail: { isSave } }) {
     this.modalIsOpen = false;
+
+    this.columnDetails = {
+      ...this.columnDetails,
+      columns: this.columnDetails.columns.map((detail) => {
+        let clone = { ...detail };
+        clone.typeAttributes.defaultEdit = this.modalIsOpen;
+        return clone;
+      })
+    };
   }
 
   get isMobileNavigation() {
@@ -171,9 +188,9 @@ export default class Editor extends LightningElement {
                 fieldName: fieldDetail.relationshipName
               }
             : null,
-          objectApiName: this.objectApiName
+          objectApiName: this.objectApiName,
+          defaultEdit: this.isStandalone || this.modalIsOpen
           // recordTypeId: this.listInfo.recordTypeId,
-          // isModal: this.isModal || this.isOwnPage
         },
         fieldName: fieldApiName,
         fieldDetail,

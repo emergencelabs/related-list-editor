@@ -52,7 +52,7 @@
         can-request-more={canRequestMore}
         layout-mode-limit={layoutModeLimit}
       ></c-tile-list>
-      <div style="height: 15rem;">
+      <div style="height: 15rem;" if:true={isTableLayout}>
         <div class="slds-is-relative">
           <div if:true={refreshingTable}>
             <lightning-spinner
@@ -63,7 +63,6 @@
           </div>
         </div>
         <c-table
-          if:true={isTableLayout}
           columns={columnDetails.columns}
           data={records}
           enable-infinite-loading

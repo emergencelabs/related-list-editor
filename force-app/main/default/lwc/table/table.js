@@ -16,7 +16,7 @@ export default class Table extends LightningDatatable {
         "referenceValue",
         "objectApiName",
         "recordTypeId",
-        "isModal"
+        "defaultEdit"
       ]
     }
   };
