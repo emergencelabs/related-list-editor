@@ -50,10 +50,23 @@
         is-standalone={isStandalone}
         onviewmore={getNextRecords}
         can-request-more={canRequestMore}
+        layout-mode-limit={layoutModeLimit}
       ></c-tile-list>
-
-      <div>
-        <p>Table</p>
+      <div style="height: 15rem;">
+        <c-table
+          if:true={isTableLayout}
+          columns={columnDetails.columns}
+          data={records}
+          enable-infinite-loading
+          hide-checkbox-column
+          key-field="Id"
+          onloadmore={loadMoreRecords}
+          sorted-by={columnDetails.sortDetails.column}
+          sorted-direction={columnSortDirection}
+          onsort={updateColumnSorting}
+        >
+        </c-table>
+        <!-- <lightning-datatable></lightning-datatable> -->
         <p>Save/Cancel</p>
       </div>
     </template>

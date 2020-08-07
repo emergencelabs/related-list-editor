@@ -30,6 +30,7 @@ export default class Editor extends LightningElement {
   @track records = [];
   @track totalRecordsCount = 0;
   @track canRequestMore = true;
+  @track currentOffset = 0;
 
   get totalRecordsCountLabel() {
     if (this.totalRecordsCount > this.layoutModeLimit) {
@@ -60,6 +61,10 @@ export default class Editor extends LightningElement {
 
   get isTileLayout() {
     return this.layoutMode === 1 || this.layoutMode === 2;
+  }
+
+  get isTableLayout() {
+    return this.layoutMode > 2;
   }
 
   get requiredFields() {
@@ -156,7 +161,8 @@ export default class Editor extends LightningElement {
           label,
           fieldName: fieldApiName,
           fieldDetail,
-          lookupId
+          lookupId,
+          sortable: true
         };
       })
     };
@@ -167,17 +173,24 @@ export default class Editor extends LightningElement {
     return 10;
   }
 
-  buildQueryString(offset = 0) {
+  // TODO: this is going to need to store the ORDER BY and OFFSET (maybe, TBD on if table sorting can reset it)
+  // in state so that it can persist with whatever the latest sort is for infinite scroll
+  // and also allow sort to change
+  buildQueryString(offset = 0, customSortString = null) {
     let offsetString = `OFFSET ${offset}`;
     let sortString = `ORDER BY ${this.relatedListInfo.sort[0].column} ${
-      this.relatedListInfo.sort[0].ascending ? "ASC" : "DESC"
+      this.relatedListInfo.sort[0].ascending
+        ? "ASC  NULLS LAST"
+        : "DESC  NULLS LAST"
     }`;
     let limitString = `LIMIT ${this.layoutModeLimit}`;
     let queryString = `SELECT Id, ${this.relatedListInfo.columns
       .map((c) => c.fieldApiName)
       .join(", ")} FROM ${this.childObjectApiName} WHERE ${
       this.relationshipField
-    } = '${this.recordId}' ${sortString} ${limitString} ${offsetString}`;
+    } = '${this.recordId}' ${
+      customSortString !== null ? customSortString : sortString
+    } ${limitString} ${offsetString}`;
     window.console.log(queryString);
     return queryString;
   }
@@ -194,6 +207,8 @@ export default class Editor extends LightningElement {
     return getChildRecords({ queryString });
   }
 
+  // TODO: fix this to use the internal currentOffset state versus sending in event
+  // sort also resets the currentOffset back to 0
   async getNextRecords({ detail: { offset } }) {
     this.loading = true;
     if (offset <= 2000) {
@@ -201,9 +216,8 @@ export default class Editor extends LightningElement {
         let nextRecords = await this.getChildRecords(
           this.buildQueryString(offset)
         );
-        window.console.log(JSON.parse(JSON.stringify(nextRecords)));
-        this.canRequestMore = !!nextRecords.length;
-        this.records = [this.records, ...nextRecords];
+        this.canRequestMore = nextRecords.length === this.layoutModeLimit;
+        this.records = [...this.records, ...nextRecords];
       } catch (e) {
         window.console.error(e);
       }
@@ -211,6 +225,52 @@ export default class Editor extends LightningElement {
       this.canRequestMore = false;
     }
     this.loading = false;
+  }
+
+  // NOTE: data table event handlers cannot be async for some reason???
+  // TODO: need to add the 2000 record offset blocking
+  loadMoreRecords(event) {
+    if (this.canRequestMore) {
+      let t = event.target;
+      t.isLoading = true;
+
+      this.currentOffset += this.layoutModeLimit;
+      this.getChildRecords(this.buildQueryString(this.currentOffset)).then(
+        (nextRecords) => {
+          t.isLoading = false;
+          this.canRequestMore = nextRecords.length === this.layoutModeLimit;
+          t.enableInfiniteLoading = this.canRequestMore;
+          this.records = [...this.records, ...nextRecords];
+        }
+      );
+    }
+  }
+
+  updateColumnSorting(event) {
+    var fieldName = event.detail.fieldName;
+    var sortDirection = event.detail.sortDirection;
+    // assign the latest attribute with the sorted column fieldName and sorted direction
+    let t = event.target;
+    t.sortedBy = fieldName;
+    t.sortedDirection = sortDirection;
+    this.currentOffset = 0;
+    t.isLoading = true;
+    let sortString = `ORDER BY ${fieldName} ${sortDirection.toUpperCase()} NULLS LAST`;
+    this.getChildRecords(
+      this.buildQueryString(this.currentOffset, sortString)
+    ).then((records) => {
+      t.isLoading = false;
+      this.records = records;
+      this.canRequestMore = !!this.records.length;
+      t.enableInfiniteLoading = this.canRequestMore;
+    });
+  }
+
+  get columnSortDirection() {
+    if (this.relatedListInfo) {
+      return this.relatedListInfo.sort[0].ascending ? "asc" : "desc";
+    }
+    return null;
   }
 
   async deleteChildRecord(childObject) {

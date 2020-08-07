@@ -7,6 +7,7 @@ export default class TileList extends NavigationMixin(LightningElement) {
 
   @api isStandalone;
   @api canRequestMore;
+  @api layoutModeLimit;
   @api childObjectLabel;
   @api childObjectApiName;
   @api objectApiName;
@@ -37,8 +38,8 @@ export default class TileList extends NavigationMixin(LightningElement) {
   // incremented
   // using a 0 start and continual increment by 10 is okay i guess
   viewAll() {
-    if (!this.isStandalone) {
-      this.offset += 10;
+    if (this.isStandalone) {
+      this.offset += this.layoutModeLimit;
       this.dispatchEvent(
         new CustomEvent("viewmore", { detail: { offset: this.offset } })
       );

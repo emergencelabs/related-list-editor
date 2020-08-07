@@ -3,7 +3,6 @@ import { NavigationMixin } from "lightning/navigation";
 
 export default class Tile extends NavigationMixin(LightningElement) {
   @api iconName;
-  // TODO: make singular child object label
   @api childObjectLabel;
   @api record;
   @api columns;
@@ -23,19 +22,27 @@ export default class Tile extends NavigationMixin(LightningElement) {
   get fields() {
     if (this.record) {
       return this.columns
-        .map((c) => ({
-          apiName: c.fieldName,
-          label: c.label,
-          dataType: c.fieldDetail.dataType,
-          value: c.fieldDetail.relationshipName
-            ? this.record[c.fieldDetail.relationshipName].Name
-            : this.record[c.fieldName],
-          link: c.fieldDetail.relationshipName
-            ? `/lightning/r/${
-                this.record[c.fieldDetail.relationshipName].Id
-              }/view`
-            : null
-        }))
+        .map((c) => {
+          let isReference = !!c.fieldDetail.relationshipName;
+          let referenceValue = isReference
+            ? this.record[c.fieldDetail.relationshipName]
+            : null;
+          let value = this.record[c.fieldName];
+          if (referenceValue) {
+            value = referenceValue.Name;
+          } else if (isReference && !referenceValue) {
+            value = "";
+          }
+          return {
+            apiName: c.fieldName,
+            label: c.label,
+            dataType: c.fieldDetail.dataType,
+            value,
+            link: referenceValue
+              ? `/lightning/r/${referenceValue.Id}/view`
+              : null
+          };
+        })
         .filter((f) => f.apiName !== this.nameField);
     }
     return [];
@@ -68,6 +75,8 @@ export default class Tile extends NavigationMixin(LightningElement) {
     this.needsConfirmation = false;
   }
 
+  // TODO: potentially need to do the same interval url check
+  // for wrapping a promise here so that can refresh records on edit
   handleAction(event) {
     // Get the value of the selected action
     const tileAction = event.detail.action.value;
