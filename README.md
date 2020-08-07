@@ -296,3 +296,5 @@ hierarchy and passing it down all the levels kind of sucks but
 - with layout mode 1 (standalone mobile) how do we deal with limits?
 - with offset requesting more records you need to use the same ORDER BY clause in all subsequent
   requests which means that the table column sorting will have to either lose scroll position and reset it with new results Offset 0 to the new order by or will have to only sort the currently available client side items but then the offset ones could be out of order so you cant do that, makes sense as the default list view requeries it
+- are we binding to record type ids as a dependency if we have it in the apex code?
+- when to augment each retrieved child record with record type id (maybe find a way to only have to do the 1 check if it comes back as no types exist)
