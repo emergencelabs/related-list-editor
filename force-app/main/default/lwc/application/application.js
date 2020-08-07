@@ -103,15 +103,14 @@ export default class Application extends LightningElement {
   }
 
   async connectedCallback() {
-    window.console.log(this.objectApiName, this.recordId);
-
     this.recordTypeId = await this.findRecordTypeId();
     window.addEventListener("message", ({ origin, data }) => {
       if (
         origin === `${this.urlBase}--rle.visualforce.com` &&
         this.listSelection
       ) {
-        let apiResponse = JSON.parse(data);
+        // let apiResponse = JSON.parse(data);
+        let apiResponse = data;
         this.relatedListInfo = apiResponse.relatedLists.find(
           (rli) =>
             rli.sobject === this.parsedListDetails.childObject &&

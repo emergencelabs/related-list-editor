@@ -14,6 +14,8 @@ export default class TileList extends NavigationMixin(LightningElement) {
   @api columns;
   @api recordId;
 
+  offset = 0;
+
   get showViewMoreButton() {
     return (this.isStandalone && this.canRequestMore) || !this.isStandalone;
   }
@@ -32,13 +34,14 @@ export default class TileList extends NavigationMixin(LightningElement) {
     );
   }
 
-  // TODO: this will need to double as a 'View More' when in the standalone
-  // view and will have to get additional records in the same fashion that the
-  // data table will
+  // TODO: need to know what the previous offset value was so that it can be continually
+  // incremented
+  // using a 0 start and continual increment by 10 is okay i guess
   viewAll() {
-    if (this.isStandalone) {
+    if (!this.isStandalone) {
+      this.offset += 10;
       this.dispatchEvent(
-        new CustomEvent("viewmore", { detail: { offset: 10 } })
+        new CustomEvent("viewmore", { detail: { offset: this.offset } })
       );
     } else {
       this[NavigationMixin.Navigate]({

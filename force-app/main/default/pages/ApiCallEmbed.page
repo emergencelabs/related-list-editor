@@ -4,7 +4,7 @@
   <script>
     let targetWindow = window.parent;
     if (targetWindow) {
-      targetWindow.postMessage(`{!pageLayoutDescribeResponse}`.replace(/\s+/g, ''), "{!targetOrigin}");
+      targetWindow.postMessage({!pageLayoutDescribeResponse}, "{!targetOrigin}");
     }
   </script>
 </apex:page>

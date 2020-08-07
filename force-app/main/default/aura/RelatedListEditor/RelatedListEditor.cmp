@@ -21,11 +21,12 @@
   <div>
     <aura:renderIf isTrue="{!v.showBackButton}">
       <lightning:button
-        variant="neutral"
-        label="{! 'Back To' + v.parentObject}"
+        variant="inverse"
+        label="{! 'Back To ' + v.parentObject}"
         iconName="utility:chevronleft"
         iconPosition="left"
         onclick="{!c.backToRecord}"
+        class="slds-m-bottom_small"
       />
     </aura:renderIf>
 

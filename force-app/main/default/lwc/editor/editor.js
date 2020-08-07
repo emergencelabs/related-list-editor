@@ -137,6 +137,7 @@ export default class Editor extends LightningElement {
     return "standard:default";
   }
 
+  // TODO: can this be removed in favor of its individual parts?
   populateListInfo(targetList) {
     return {
       listLabel: this.listLabel,
@@ -144,7 +145,9 @@ export default class Editor extends LightningElement {
       childRecordTypeInfo: null,
       sortDetails: targetList.sort[0],
       relationshipField: this.relationshipField,
-      columns: targetList.columns.map(({ fieldApiName, lookupId, label }) => {
+      columns: targetList.columns.map((col) => {
+        let { fieldApiName, lookupId, label } = col;
+        window.console.log({ col });
         let normalizedApiName = fieldApiName;
         if (fieldApiName.includes(".")) {
           normalizedApiName = lookupId.replace(".", "");
