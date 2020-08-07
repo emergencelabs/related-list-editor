@@ -4,8 +4,8 @@ import { NavigationMixin } from "lightning/navigation";
 export default class TileList extends NavigationMixin(LightningElement) {
   @api iconName;
   @api records = [];
-  // TODO: make singular child object label
-  @api objectApiName;
+
+  @api childObjectLabel;
   @api childObjectApiName;
   @api relationshipField;
   @api columns;

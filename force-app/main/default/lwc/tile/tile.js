@@ -4,7 +4,7 @@ import { NavigationMixin } from "lightning/navigation";
 export default class Tile extends NavigationMixin(LightningElement) {
   @api iconName;
   // TODO: make singular child object label
-  @api objectApiName;
+  @api childObjectLabel;
   @api record;
   @api columns;
 
@@ -45,7 +45,7 @@ export default class Tile extends NavigationMixin(LightningElement) {
   ];
 
   get confirmationModalTitle() {
-    return `Delete ${this.objectApiName}`;
+    return `Delete ${this.childObjectLabel}`;
   }
 
   closeModal({ detail }) {

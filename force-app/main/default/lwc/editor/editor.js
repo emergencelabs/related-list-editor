@@ -15,6 +15,7 @@ export default class Editor extends LightningElement {
   @api relatedListInfo;
   @api childFields;
 
+  @api childObjectLabel;
   @api childRecordTypeInfo;
 
   @track iconName;
