@@ -1,6 +1,11 @@
 import { LightningElement, api, track } from "lwc";
 import getIconURL from "@salesforce/apex/IconService.getIconURL";
 
+// this required field situation needs to be sorted out for name fields
+// if a compound name field is in here and not that one then you can't edit inline?
+// also need to filter out owner and some consideration may apply for multi currency here?
+const IGNORED_REQUIRED_FIELDS = ["OwnerId"];
+
 export default class Editor extends LightningElement {
   @api layoutMode;
   @api isStandalone = false;
@@ -12,9 +17,66 @@ export default class Editor extends LightningElement {
   @api childRecordTypeInfo;
 
   @track iconName;
+  @track columnDetails;
+
+  @track modalIsOpen = false;
+  launchModal() {
+    this.modalIsOpen = true;
+  }
+  closeModal({ detail }) {
+    this.modalIsOpen = false;
+  }
 
   get isMobileNavigation() {
     return this.layoutMode === 0;
+  }
+
+  get showHeader() {
+    return this.layoutMode > 0;
+  }
+
+  get allowEditModal() {
+    return !this.isStandalone && this.layoutMode > 1;
+  }
+
+  get requiredFields() {
+    if (this.childFields) {
+      return Object.values(this.childFields).filter(
+        (f) =>
+          f.required &&
+          f.createable &&
+          !IGNORED_REQUIRED_FIELDS.includes(f.apiName)
+      );
+    }
+    return [];
+  }
+
+  get requireNewModal() {
+    let missingFields = this.requiredFields
+      .map((requiredField) => requiredField.apiName)
+      .filter((requiredField) => {
+        return (
+          this.relatedListInfo.columns.filter(
+            (columnField) => columnField.name === requiredField
+          ).length === 0
+        );
+      });
+    return missingFields.length > 0;
+  }
+
+  get reasonForNewModal() {
+    if (this.requireNewModal) {
+      return `The following required fields are not in the column list: ${this.requiredFields
+        .map((requiredField, index, list) => {
+          let label = requiredField.label;
+          if (index !== list.length - 1) {
+            return `${label}, `;
+          }
+          return label;
+        })
+        .join("")}`;
+    }
+    return null;
   }
 
   get listLabel() {
@@ -53,16 +115,12 @@ export default class Editor extends LightningElement {
     return "standard:default";
   }
 
-  // make not async anymore
   populateListInfo(targetList) {
     return {
       listLabel: this.listLabel,
       childObjectApiName: this.childObjectApiName,
       childRecordTypeInfo: null,
       sortDetails: targetList.sort[0],
-      requiredFields: Object.values(this.childFields).filter(
-        (f) => f.required && f.createable
-      ),
       relationshipField: this.relationshipField,
       columns: targetList.columns.map(({ fieldApiName, lookupId, label }) => {
         let normalizedApiName = fieldApiName;
@@ -83,6 +141,7 @@ export default class Editor extends LightningElement {
 
   async connectedCallback() {
     this.iconName = await this.fetchIcon();
-    window.console.log(this.populateListInfo(this.relatedListInfo));
+    this.columnDetails = this.populateListInfo(this.relatedListInfo);
+    window.console.log(JSON.parse(JSON.stringify(this.columnDetails)));
   }
 }

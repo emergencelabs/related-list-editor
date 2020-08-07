@@ -1,0 +1,33 @@
+<template>
+  <section
+    role="dialog"
+    tabindex="-1"
+    class="slds-modal slds-fade-in-open slds-modal_large"
+    aria-labelledby="related-list-editor-modal"
+    aria-modal="true"
+    aria-describedby="related-list-editor-modal"
+  >
+    <div class="slds-modal__container">
+      <header class="slds-modal__header">
+        <h2 class="slds-modal__title slds-hyphenate">{listLabel}</h2>
+      </header>
+      <div class="slds-modal__content">
+        <slot></slot>
+      </div>
+      <footer class="slds-modal__footer">
+        <lightning-button
+          variant="neutral"
+          onclick={cancel}
+          label="Cancel"
+        ></lightning-button>
+        <lightning-button
+          variant="brand"
+          onclick={save}
+          label="Save"
+          class="slds-m-left_small"
+        ></lightning-button>
+      </footer>
+    </div>
+  </section>
+  <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

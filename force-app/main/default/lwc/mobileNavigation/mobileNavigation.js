@@ -1,8 +1,10 @@
 import { LightningElement, api } from "lwc";
 import { NavigationMixin } from "lightning/navigation";
 
-export default class MobileNavigation extends LightningElement {
-  @api listName;
+export default class MobileNavigation extends NavigationMixin(
+  LightningElement
+) {
+  @api listLabel;
   @api count = 0;
   @api iconName = "standard:default";
 

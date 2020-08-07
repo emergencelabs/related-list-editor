@@ -1,0 +1,67 @@
+<template>
+  <div
+    class="slds-page-header"
+    style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+  >
+    <div
+      class="slds-page-header__row slds-grid slds-grid_align-center slds-grid_vertical-align-center"
+    >
+      <div class="slds-page-header__col-title">
+        <div class="slds-media slds-media--center">
+          <div class="slds-media__figure">
+            <lightning-icon icon-name={iconName} size="small"></lightning-icon>
+          </div>
+          <div class="slds-media__body">
+            <div class="slds-page-header__name">
+              <div class="slds-page-header__name-title">
+                <h2 class="slds-card__header-title">
+                  <span
+                    class="slds-card__header-link baseCard__header-title-container"
+                    ><span
+                      class="slds-truncate slds-m-right--xx-small"
+                      title={listName}
+                      >{listLabel}</span
+                    ><span
+                      class="slds-shrink-none slds-m-right--xx-small"
+                      title={count}
+                      >({count})</span
+                    >
+                  </span>
+                </h2>
+              </div>
+            </div>
+            <p
+              class="slds-page-header__name-meta slds-grid slds-grid_vertical-align-center"
+              if:true={requireNewModal}
+            >
+              <span class="slds-p-right_small"
+                >New records cannot be created inline</span
+              >
+              <lightning-helptext
+                content={reasonForNewModal}
+              ></lightning-helptext>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="slds-page-header__col-actions">
+        <div class="slds-page-header__controls">
+          <div class="slds-page-header__control">
+            <lightning-button-group>
+              <lightning-button
+                label="Expand"
+                onclick={displayEditModal}
+                if:true={allowEditModal}
+              ></lightning-button>
+              <lightning-button
+                label="New"
+                onclick={newRecord}
+                if:true={requireNewModal}
+              ></lightning-button>
+            </lightning-button-group>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
