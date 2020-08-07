@@ -2,7 +2,7 @@
   <c-mobile-navigation
     if:true={isMobileNavigation}
     list-label={listLabel}
-    count={records.length}
+    count={totalRecordsCountLabel}
     icon-name={iconName}
     object-api-name={objectApiName}
     child-object-api-name={childObjectApiName}
@@ -17,26 +17,48 @@
     child-object-api-name={childObjectApiName}
     relationship-field={relationshipField}
     record-id={recordId}
-    count={records.length}
+    count={totalRecordsCountLabel}
     require-new-modal={requireNewModal}
     allow-edit-modal={allowEditModal}
     reason-for-new-modal={reasonForNewModal}
     ondisplaymodal={launchModal}
   ></c-header>
-  <c-tile-list
-    if:true={isTileLayout}
-    icon-name={iconName}
-    records={records}
-    object-api-name={objectApiName}
-    child-object-label={childObjectLabel}
-    relationship-field={relationshipField}
-    record-id={recordId}
-    columns={columnDetails.columns}
-  ></c-tile-list>
+  <div style="min-height: 100px;">
+    <template if:true={loading}>
+      <div
+        class="slds-spinner_container slds-align_absolute-center slds-is-relative"
+      >
+        <div class="slds-is-relative">
+          <lightning-spinner
+            alternative-text="Loading Records"
+            size="small"
+            variant="brand"
+          ></lightning-spinner>
+        </div>
+      </div>
+    </template>
+    <template if:false={loading}>
+      <c-tile-list
+        if:true={isTileLayout}
+        icon-name={iconName}
+        records={records}
+        object-api-name={objectApiName}
+        child-object-label={childObjectLabel}
+        child-object-api-name={childObjectApiName}
+        relationship-field={relationshipField}
+        record-id={recordId}
+        columns={columnDetails.columns}
+        onrequestdelete={requestDelete}
+        is-standalone={isStandalone}
+        onviewmore={getNextRecords}
+        can-request-more={canRequestMore}
+      ></c-tile-list>
 
-  <div>
-    <p>Table</p>
-    <p>Save/Cancel</p>
+      <div>
+        <p>Table</p>
+        <p>Save/Cancel</p>
+      </div>
+    </template>
   </div>
 
   <c-slotted-modal

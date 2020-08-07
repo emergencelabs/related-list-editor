@@ -1,0 +1,40 @@
+<aura:component
+  implements="lightning:isUrlAddressable"
+  description="Related List Editor Standalone"
+>
+  <aura:attribute name="recordId" type="String" />
+  <aura:attribute name="childObject" type="String" />
+  <aura:attribute name="parentObject" type="String" />
+  <aura:attribute name="relationshipField" type="String" />
+  <aura:attribute name="listSelection" type="Object" />
+  <aura:attribute name="showBackButton" type="Object" />
+
+  <lightning:flexipageRegionInfo width="{!v.width}" />
+  <!-- Add an "init" handler to handle the first "v.pageReference" value -->
+  <aura:handler
+    name="init"
+    value="{!this}"
+    action="{!c.onPageReferenceChange}"
+  />
+  <!-- Add a "change" handler to handle all changes to the "v.pageReference" value -->
+  <aura:handler name="change" value="{!v.pageReference}" action="{!c.reInit}" />
+  <div>
+    <aura:renderIf isTrue="{!v.showBackButton}">
+      <lightning:button
+        variant="neutral"
+        label="{! 'Back To' + v.parentObject}"
+        iconName="utility:chevronleft"
+        iconPosition="left"
+        onclick="{!c.backToRecord}"
+      />
+    </aura:renderIf>
+
+    <c:errorBoundary
+      flexipageRegionWidth="{!v.width}"
+      recordId="{!v.recordId}"
+      objectApiName="{!v.parentObject}"
+      listSelection="{!v.listSelection}"
+      isStandalone="true"
+    />
+  </div>
+</aura:component>

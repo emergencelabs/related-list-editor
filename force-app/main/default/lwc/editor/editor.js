@@ -1,6 +1,10 @@
 import { LightningElement, api, track } from "lwc";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
+
 import getIconURL from "@salesforce/apex/IconService.getIconURL";
+import getCount from "@salesforce/apex/ChildRecordService.getCount";
 import getChildRecords from "@salesforce/apex/ChildRecordService.getChildRecords";
+import deleteChildRecord from "@salesforce/apex/ChildRecordService.deleteChildRecord";
 
 // this required field situation needs to be sorted out for name fields
 // if a compound name field is in here and not that one then you can't edit inline?
@@ -21,13 +25,24 @@ export default class Editor extends LightningElement {
   @track iconName;
   @track columnDetails;
 
+  @track loading = true;
+
   @track records = [];
+  @track totalRecordsCount = 0;
+  @track canRequestMore = true;
+
+  get totalRecordsCountLabel() {
+    if (this.totalRecordsCount > this.layoutModeLimit) {
+      return `${this.layoutModeLimit}+`;
+    }
+    return `${this.totalRecordsCount}`;
+  }
 
   @track modalIsOpen = false;
   launchModal() {
     this.modalIsOpen = true;
   }
-  closeModal({ detail }) {
+  closeModal({ detail: { isSave } }) {
     this.modalIsOpen = false;
   }
 
@@ -145,31 +160,92 @@ export default class Editor extends LightningElement {
     };
   }
 
-  buildQueryString() {
-    let sortString = ` ORDER BY ${this.relatedListInfo.sort[0].column} ${
+  get layoutModeLimit() {
+    if (this.layoutMode < 3) return 5;
+    return 10;
+  }
+
+  buildQueryString(offset = 0) {
+    let offsetString = `OFFSET ${offset}`;
+    let sortString = `ORDER BY ${this.relatedListInfo.sort[0].column} ${
       this.relatedListInfo.sort[0].ascending ? "ASC" : "DESC"
     }`;
+    let limitString = `LIMIT ${this.layoutModeLimit}`;
     let queryString = `SELECT Id, ${this.relatedListInfo.columns
       .map((c) => c.fieldApiName)
       .join(", ")} FROM ${this.childObjectApiName} WHERE ${
       this.relationshipField
-    } = '${this.recordId}'${sortString}`;
-    window.console.log(queryString);
+    } = '${this.recordId}' ${sortString} ${limitString} ${offsetString}`;
     return queryString;
+  }
+
+  buildCountQueryString() {
+    return `SELECT COUNT() FROM ${this.childObjectApiName} WHERE ${this.relationshipField} = '${this.recordId}'`;
+  }
+
+  async getRecordCount(queryString) {
+    return getCount({ queryString });
   }
 
   async getChildRecords(queryString) {
     return getChildRecords({ queryString });
   }
 
+  async getNextRecords({ detail: { offset } }) {
+    this.loading = true;
+    if (offset <= 2000) {
+      let nextRecords = await getChildRecords(this.buildQueryString(offset));
+      this.canRequestMore = !!nextRecords.length;
+      this.records = [this.records, ...nextRecords];
+    } else {
+      this.canRequestMore = false;
+    }
+    this.loading = false;
+  }
+
+  async deleteChildRecord(childObject) {
+    return deleteChildRecord({ childObject });
+  }
+
+  async requestDelete({ detail: { childObject } }) {
+    // TODO: update this with record details if possible?
+    // also update the failure to include reason if possible
+    this.loading = true;
+    let title = "Record Deleted";
+    let variant = "success";
+    try {
+      await this.deleteChildRecord(childObject);
+      this.records = await this.getChildRecords(this.buildQueryString());
+    } catch (e) {
+      window.console.error("deletion error:", e);
+      title = "Oops! Something went wrong!";
+      variant = "error";
+    }
+    this.loading = false;
+
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title,
+        // message: this.message,
+        variant
+      })
+    );
+  }
+
   async connectedCallback() {
     this.columnDetails = this.populateListInfo(this.relatedListInfo);
-    let [records, iconName] = await Promise.all([
+    let [count, records, iconName] = await Promise.all([
+      this.getRecordCount(this.buildCountQueryString()),
       this.getChildRecords(this.buildQueryString()),
       this.fetchIcon()
     ]);
+    this.totalRecordsCount = count;
     this.iconName = iconName;
     this.records = records;
+    if (!this.records.length) {
+      this.canRequestMore = false;
+    }
+    this.loading = false;
     window.console.log(JSON.parse(JSON.stringify(this.records)));
   }
 }

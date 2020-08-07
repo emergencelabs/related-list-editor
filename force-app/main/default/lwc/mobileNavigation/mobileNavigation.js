@@ -17,7 +17,7 @@ export default class MobileNavigation extends NavigationMixin(
     this[NavigationMixin.Navigate]({
       type: "standard__component",
       attributes: {
-        componentName: "REPLACE_ME"
+        componentName: "rle__RelatedListEditor"
       },
       state: {
         c__recordId: this.recordId,

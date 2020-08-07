@@ -287,3 +287,12 @@ hierarchy and passing it down all the levels kind of sucks but
 - Field level and object level security
   - https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_with_security_enforced.htm?search_text=System.QueryException
 - User Permission considerations? Will someone's ability to 'Edit' a lightning page be what we can entirely piggy back on? That plus the fact that all columns, etc are controlled by regular page layout functionality?
+
+# General Considerations & TODOs
+
+- add to the editor input whether to allow inline delete? what else? could also allow disable full edit and only do the inline click
+- need to consider what happens if you're in edit mode and then you delete a record and you have made changes to other records (how did we handle that before? I think just filter that record out of the list, maybe should do that as opposed to a full re-fetching of records)
+- need to consider what infinite scroll will look like in requesting more records from parent in a way that doesnt lose scroll (if an @api records value changes will the whole thing re-render to top)?
+- with layout mode 1 (standalone mobile) how do we deal with limits?
+- with offset requesting more records you need to use the same ORDER BY clause in all subsequent
+  requests which means that the table column sorting will have to either lose scroll position and reset it with new results Offset 0 to the new order by or will have to only sort the currently available client side items but then the offset ones could be out of order so you cant do that, makes sense as the default list view requeries it

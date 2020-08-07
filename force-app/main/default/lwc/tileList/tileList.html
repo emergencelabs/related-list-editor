@@ -19,17 +19,18 @@
               record={record}
               columns={columns}
               child-object-label={childObjectLabel}
+              onrequestdelete={requestDelete}
             ></c-tile>
           </li>
         </template>
       </ul>
     </div>
-    <div class="slds-card__footer">
+    <div class="slds-card__footer" if:true={showViewMoreButton}>
       <div>
         <lightning-button
           variant="base"
           onclick={viewAll}
-          label="View All"
+          label={ViewMoreButtonLabel}
         ></lightning-button>
       </div>
     </div>

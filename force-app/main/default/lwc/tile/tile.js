@@ -57,7 +57,15 @@ export default class Tile extends NavigationMixin(LightningElement) {
     return `Delete ${this.childObjectLabel}`;
   }
 
-  closeModal({ detail }) {
+  closeModal({ detail: { isSave } }) {
+    if (isSave) {
+      window.console.log("tile delete");
+      this.dispatchEvent(
+        new CustomEvent("requestdelete", {
+          detail: { childObject: this.record }
+        })
+      );
+    }
     this.needsConfirmation = false;
   }
 

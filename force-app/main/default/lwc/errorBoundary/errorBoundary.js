@@ -6,6 +6,8 @@ export default class ErrorBoundary extends LightningElement {
   @api objectApiName;
   @api listSelection;
 
+  @api isStandalone = false;
+
   errorHandler(event) {
     window.console.error(JSON.stringify(event.data));
   }

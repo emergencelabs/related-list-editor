@@ -103,6 +103,8 @@ export default class Application extends LightningElement {
   }
 
   async connectedCallback() {
+    window.console.log(this.objectApiName, this.recordId);
+
     this.recordTypeId = await this.findRecordTypeId();
     window.addEventListener("message", ({ origin, data }) => {
       if (
