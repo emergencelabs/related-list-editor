@@ -23,11 +23,9 @@
     reason-for-new-modal={reasonForNewModal}
     ondisplaymodal={launchModal}
   ></c-header>
-  <div style="min-height: 100px;">
+  <div style="min-height: 100px;" class="slds-is-relative">
     <template if:true={loading}>
-      <div
-        class="slds-spinner_container slds-align_absolute-center slds-is-relative"
-      >
+      <div class="slds-spinner_container slds-align_absolute-center">
         <div class="slds-is-relative">
           <lightning-spinner
             alternative-text="Loading Records"

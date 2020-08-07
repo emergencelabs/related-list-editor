@@ -178,6 +178,7 @@ export default class Editor extends LightningElement {
       .join(", ")} FROM ${this.childObjectApiName} WHERE ${
       this.relationshipField
     } = '${this.recordId}' ${sortString} ${limitString} ${offsetString}`;
+    window.console.log(queryString);
     return queryString;
   }
 
@@ -196,9 +197,16 @@ export default class Editor extends LightningElement {
   async getNextRecords({ detail: { offset } }) {
     this.loading = true;
     if (offset <= 2000) {
-      let nextRecords = await getChildRecords(this.buildQueryString(offset));
-      this.canRequestMore = !!nextRecords.length;
-      this.records = [this.records, ...nextRecords];
+      try {
+        let nextRecords = await this.getChildRecords(
+          this.buildQueryString(offset)
+        );
+        window.console.log(JSON.parse(JSON.stringify(nextRecords)));
+        this.canRequestMore = !!nextRecords.length;
+        this.records = [this.records, ...nextRecords];
+      } catch (e) {
+        window.console.error(e);
+      }
     } else {
       this.canRequestMore = false;
     }

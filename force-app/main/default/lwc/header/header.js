@@ -24,7 +24,8 @@ export default class Header extends NavigationMixin(LightningElement) {
       },
       state: {
         defaultFieldValues: `${this.relationshipField}=${this.recordId}`,
-        nooverride: "1"
+        nooverride: "1",
+        navigationLocation: "LOOKUP"
       }
     });
   }
