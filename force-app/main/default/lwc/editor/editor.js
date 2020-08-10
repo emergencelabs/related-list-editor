@@ -32,6 +32,36 @@ export default class Editor extends LightningElement {
   @track canRequestMore = true;
   @track currentOffset = 0;
 
+  @track cellStatusMap = {};
+
+  get hasUnsavedChanges() {
+    return Object.values(this.cellStatusMap).some((f) =>
+      Object.values(f).some((i) => i.isChanged)
+    );
+  }
+
+  // TODO: evaluate if save should be disabled if there are no edits at all
+  // for when in expanded modal view
+  get blockSave() {
+    return Object.values(this.cellStatusMap).some((f) =>
+      Object.values(f).some((i) => i.isInvalid)
+    );
+  }
+
+  newDraftValue({ detail: { rowId, field, isChanged, isInvalid } }) {
+    // so we need to keep track of if there are any cells
+    // that do not match their original value
+    // need to find out the id and fieldvalue and a bool isChanged
+    // that way we can loop over them all sum the isChanged vals
+    let cell = this.cellStatusMap[rowId];
+    if (cell) {
+      cell[field] = { isChanged, isInvalid };
+    } else {
+      this.cellStatusMap[rowId] = { [field]: { isChanged, isInvalid } };
+    }
+    this.cellStatusMap = { ...this.cellStatusMap };
+  }
+
   get totalRecordsCountLabel() {
     if (this.totalRecordsCount > this.layoutModeLimit) {
       return `${this.layoutModeLimit}+`;
@@ -39,6 +69,10 @@ export default class Editor extends LightningElement {
     return `${this.totalRecordsCount}`;
   }
 
+  // TODO: likely need to call the confirmation here on cancel
+  // if has unsaved changes
+  // this means that the confirmation modal needs to know what method to call after
+  // it would be way better to do it as a promise but
   @track modalIsOpen = false;
   launchModal() {
     this.modalIsOpen = true;
@@ -296,13 +330,30 @@ export default class Editor extends LightningElement {
   }
 
   @track refreshingTable = false;
+  @track confirmLoseChanges = false;
+  columnSortingEvent = null;
+  confirmDiscard({ detail: { isSave } }) {
+    this.confirmLoseChanges = false;
+    if (isSave) {
+      this.cellStatusMap = {};
+      this.updateColumnSorting(this.columnSortingEvent);
+      this.columnSortingEvent = null;
+    }
+  }
   // TODO: need to potentially modify the layoutModeLimit as well as the table container height
   // if standalone desktop
   updateColumnSorting(event) {
-    var fieldName = event.detail.fieldName;
-    var sortDirection = event.detail.sortDirection;
+    // TODO: this same concept will apply for clicking new
+    // TODO: why when sort does it not clear out changes? if the same row is still onscreen
+    if (this.hasUnsavedChanges) {
+      this.columnSortingEvent = event;
+      this.confirmLoseChanges = true;
+      return;
+    }
+    let fieldName = event.detail.fieldName;
+    let sortDirection = event.detail.sortDirection;
     // assign the latest attribute with the sorted column fieldName and sorted direction
-    let t = event.target;
+    let t = event.target || this.template.querySelector("c-table");
     t.findElement().scrollTop = 0;
     t.sortedBy = fieldName;
     t.sortedDirection = sortDirection;
@@ -326,6 +377,9 @@ export default class Editor extends LightningElement {
     return null;
   }
 
+  // TODO: set this up
+  // also need to get a confirmation modal for if any of the options and
+  // has unsaved changes
   handleRowAction(event) {
     const action = event.detail.action;
     const row = event.detail.row;

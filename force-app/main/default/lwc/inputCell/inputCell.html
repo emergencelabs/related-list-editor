@@ -1,6 +1,6 @@
 <template>
   <div style="padding: 5px 10px;" class={containerClasses}>
-    <template if:false={isEditing}>
+    <template if:false={editing}>
       <div
         style="
           display: flex;
@@ -26,6 +26,48 @@
           if:true={isHovering}
         ></lightning-button-icon>
       </div>
+    </template>
+    <template if:true={editing}>
+      <span class="required slds-required" if:true={isRequired}>*</span>
+      <lightning-input
+        if:true={isBaseInput}
+        variant="label-hidden"
+        required={isRequired}
+        value={value}
+        type={inputDetails.componentDetails.type}
+        formatter={inputDetails.componentDetails.formatter}
+        disabled={disableInput}
+        step={inputDetails.componentDetails.step}
+        checked={inputDetails.componentDetails.checked}
+        max={inputDetails.componentDetails.max}
+        max-length={inputDetails.componentDetails.maxLength}
+        date-style={inputDetails.componentDetails.dateStyle}
+        class="slds-w-full"
+        onchange={changeInputValue}
+        onfocus={setKeyOveride}
+        onblur={removeKeyOveride}
+        autocomplete="off"
+      ></lightning-input>
+      <div
+        if:true={isModalInput}
+        class="slds-grid slds-grid_align-end slds-box slds-grid_vertical-align-center"
+        style="padding: 5px;"
+      >
+        <span>{value}</span>
+        <lightning-button-icon
+          variant="bare"
+          icon-name="utility:new_window"
+        ></lightning-button-icon>
+      </div>
+      <div if:true={isPicklistInput}>Picklist</div>
+      <!-- <c-modal-input ></c-modal-input>
+      <c-picklist-input
+        if:true={isPicklistInput}
+        value={value}
+        field-api-name={inputDetails.componentDetails.fieldApiName}
+        record-type-id={inputDetails.componentDetails.recordTypeId}
+        object-api-name={objectApiName}
+      ></c-picklist-input> -->
     </template>
   </div>
 </template>

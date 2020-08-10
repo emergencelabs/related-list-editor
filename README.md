@@ -307,3 +307,13 @@ hierarchy and passing it down all the levels kind of sucks but
 - are all fields that are updatable creatable? If yes, then no worries, otherwise there needs to be some extra checks for creating with that field
 - there's also a sortable value, although i've never seen fields you cannot sort by - regardless it seems like it would be good to check that to see if sorting by a column is allowed
 - may want to store most recent sort in local storage for the user
+- if a field has controlling fields does that mean its a dependent picklist? should we make those a modal edit and render the dependent field on there as well? that seems like the best way to do it
+- which inputs will handle bad message values for me, and which need their own custom ones? is it certain cases where custom ones are required?
+- for handling modal input validation there should be some client side in the modal but some will obviously happen server side and so need to consider what the error display looks like for that row/cell combo in those cases
+- theres a sizable issue with keyboard navigation being stolen from within an input element when the arrow keys are used
+- why are there fields like langauges and levels on the objects namespaced to us?
+- an advanced feature we could add is allowing name fields to be edited in a modal
+  by fetching all the required name components
+- should draft values be an api'd getter?
+- there are a number of base data table values that should be set for column widths, etc
+- need to keep form submission from happening if any of the inputs that are not modal (or ?) are invalid so need either a way to keep track of that or to query that at form submission request before going to the server, although showing that error would be hard
