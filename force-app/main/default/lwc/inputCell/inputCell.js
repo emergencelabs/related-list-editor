@@ -16,8 +16,17 @@ export default class InputCell extends LightningElement {
   //  slds-grid needs to be added but only when cell is editing
   @track containerClasses = "slds-cell-edit";
 
+  // 3 = NotSupported, 2 = Modal, 1 = Field,  0 = editable
+  get disableInputReason() {
+    if (this.fieldDetail.updateable) {
+      //check type details for if is not supported or is modal edit
+      return 0;
+    }
+    return 1;
+  }
+
   get accessIconName() {
-    return true ? "utility:lock" : "utility:edit";
+    return this.disableInputReason >= 1 ? "utility:lock" : "utility:edit";
   }
 
   get isReference() {

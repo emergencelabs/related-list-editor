@@ -195,7 +195,7 @@ export default class Editor extends LightningElement {
         fieldName: fieldApiName,
         fieldDetail,
         lookupId,
-        sortable: true
+        sortable: fieldDetail.sortable
       };
     });
     if (this.isTableLayout) {

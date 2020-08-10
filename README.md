@@ -304,3 +304,6 @@ hierarchy and passing it down all the levels kind of sucks but
 - if you use the default related list enhanced and you change the sort, it persists, and applies it to the current page layout
 - maybe the best way to is let people do a manual table refresh?
 - going to need to likely add to the formatted display options for shit like booleans
+- are all fields that are updatable creatable? If yes, then no worries, otherwise there needs to be some extra checks for creating with that field
+- there's also a sortable value, although i've never seen fields you cannot sort by - regardless it seems like it would be good to check that to see if sorting by a column is allowed
+- may want to store most recent sort in local storage for the user
