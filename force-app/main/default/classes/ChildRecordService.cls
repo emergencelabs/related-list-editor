@@ -37,8 +37,9 @@ public with sharing class ChildRecordService {
             for (String s : err.getFields()) {
               // TODO: when could this be more than one, dependent fields?
               // really needto look into that and then adjust this to format string
-              // there's a bug here where custom fields dont come back with __c, thefuck
+              // there's a bug here where custom fields dont come back with __c or the namspace, thefuck
               fieldString += s;
+              System.debug(err.getFields());
             }
           } else {
             fieldString = String.valueOf(i);

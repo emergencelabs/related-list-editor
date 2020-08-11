@@ -218,12 +218,13 @@ export default class Editor extends LightningElement {
     return "standard:default";
   }
 
+  // TODO: you can add disabled: true to disable an action
+  // although it doesnt seem you can make this change on a per-row basis??
   actions = [
     {
       label: "View",
       value: "view",
-      iconName: "utility:preview",
-      disabled: true
+      iconName: "utility:preview"
     },
     { label: "Edit", value: "edit", iconName: "utility:edit" },
     { label: "Delete", value: "delete", iconName: "utility:delete" }

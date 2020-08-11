@@ -77,8 +77,15 @@ export default class InputCell extends LightningElement {
     return this.inputDetails && this.inputDetails.component === "combobox";
   }
 
-  changeInputValue({ target }) {
+  // TODO: what other input types will require the use of detail?
+  // and other considerations
+  changeInputValue(event) {
+    let { target, detail } = event;
     let { value } = target;
+    if (detail && this.fieldDetail.dataType === "Boolean") {
+      value = detail.checked;
+    }
+
     // type coercion in check here as this is always going to be a string
     // even if the original value is a number
     // more consideration will apply for lookups and how certain modal elements

@@ -321,3 +321,5 @@ hierarchy and passing it down all the levels kind of sucks but
 - updates are going to have to not be allOrNone (as this is the only way to get the correct level of detail on errors) it is also how the standard list view handles it for server side errors (client side errors such as missing required fields never even submit the form, which is a similar approach we have with disabling the submission button)
   - interesting situation here with displaying the errors and not clearing out certain row values to new ones and maintaining the state of the cellStatusMap for those particular ones to recognize that you're effectively still editing, just only editing those cells and not the cells in successful rows (if those exist)
 - What happens if some object that can’t be deleted because of dependent child objects? I'll need to show a toast but still dismiss the modal.
+- in some cases there seems to be a double required star if the input gets marked as required as well? because the input element adds its own star
+- also the display of boolean values needs to change to being a checkbox and not the text representation
