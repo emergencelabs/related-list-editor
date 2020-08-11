@@ -4,6 +4,7 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getIconURL from "@salesforce/apex/IconService.getIconURL";
 import getCount from "@salesforce/apex/ChildRecordService.getCount";
 import getChildRecords from "@salesforce/apex/ChildRecordService.getChildRecords";
+import updateChildRecords from "@salesforce/apex/ChildRecordService.updateChildRecords";
 import deleteChildRecord from "@salesforce/apex/ChildRecordService.deleteChildRecord";
 
 // this required field situation needs to be sorted out for name fields
@@ -28,11 +29,21 @@ export default class Editor extends LightningElement {
   @track loading = true;
 
   @track records = [];
+  @track newRecords = [];
+
   @track totalRecordsCount = 0;
   @track canRequestMore = true;
   @track currentOffset = 0;
 
   @track cellStatusMap = {};
+  resetFuncs = new Set();
+
+  @track errors = {
+    rows: {}
+  };
+  get hasErrors() {
+    return Object.keys(this.errors.rows).length !== 0;
+  }
 
   get hasUnsavedChanges() {
     return Object.values(this.cellStatusMap).some((f) =>
@@ -48,16 +59,21 @@ export default class Editor extends LightningElement {
     );
   }
 
-  newDraftValue({ detail: { rowId, field, isChanged, isInvalid } }) {
-    // so we need to keep track of if there are any cells
-    // that do not match their original value
-    // need to find out the id and fieldvalue and a bool isChanged
-    // that way we can loop over them all sum the isChanged vals
+  newDraftValue({
+    detail: { rowId, field, value, isChanged, isInvalid, reset }
+  }) {
+    this.resetFuncs.add({ rowId, field, reset });
     let cell = this.cellStatusMap[rowId];
     if (cell) {
       cell[field] = { isChanged, isInvalid };
     } else {
       this.cellStatusMap[rowId] = { [field]: { isChanged, isInvalid } };
+    }
+    if (!isInvalid) {
+      let targetRecord = this.newRecords.find((r) => r.Id === rowId);
+      if (targetRecord) {
+        targetRecord[field] = value;
+      }
     }
     this.cellStatusMap = { ...this.cellStatusMap };
   }
@@ -85,7 +101,16 @@ export default class Editor extends LightningElement {
       })
     };
   }
-  closeModal({ detail: { isSave } }) {
+  // TODO: this needs to sync up or just refresh the data table that is behind the modal
+  async closeModal({ detail: { isSave } }) {
+    if (isSave) {
+      this.refreshingTable = true;
+      await this.updateChildRecords(this.newRecords);
+      this.records = this.newRecords;
+      this.refreshingTable = false;
+    } else {
+      this.newRecords = this.records;
+    }
     this.modalIsOpen = false;
 
     this.columnDetails = {
@@ -194,7 +219,12 @@ export default class Editor extends LightningElement {
   }
 
   actions = [
-    { label: "View", value: "view", iconName: "utility:preview" },
+    {
+      label: "View",
+      value: "view",
+      iconName: "utility:preview",
+      disabled: true
+    },
     { label: "Edit", value: "edit", iconName: "utility:edit" },
     { label: "Delete", value: "delete", iconName: "utility:delete" }
   ];
@@ -290,6 +320,61 @@ export default class Editor extends LightningElement {
     return getChildRecords({ queryString });
   }
 
+  async updateChildRecords(records) {
+    return updateChildRecords({ childRecords: records });
+  }
+
+  async commitRecordChange({ detail: { isSave } }) {
+    var stylingOnly = false;
+    if (isSave) {
+      stylingOnly = true;
+      this.refreshingTable = true;
+      let errors = await this.updateChildRecords(this.newRecords);
+      if (Object.keys(errors).length) {
+        let errorObj = {
+          rows: {}
+        };
+        Object.keys(errors).forEach((id) => {
+          errorObj.rows[id] = {
+            title: `We found ${Object.keys(errors[id]).length} errors`,
+            messages: Object.values(errors[id]),
+            fieldNames: Object.keys(errors[id])
+          };
+        });
+        this.errors = errorObj;
+        this.cellStatusMap = Object.keys(this.cellStatusMap)
+          .filter((id) => !!errors[id])
+          .map((id) => {
+            return this.cellStatusMap[id];
+          });
+        this.resetFuncs.forEach((o) => {
+          if (!errors[o.rowId]) {
+            o.reset(stylingOnly);
+          }
+        });
+      } else {
+        this.errors = {
+          rows: {}
+        };
+        this.cellStatusMap = {};
+        this.resetFuncs.forEach((o) => {
+          o.reset(stylingOnly);
+        });
+      }
+
+      this.records = this.newRecords;
+      this.refreshingTable = false;
+    } else {
+      this.newRecords = this.records;
+      this.cellStatusMap = {};
+      this.resetFuncs.forEach((o) => {
+        o.reset(stylingOnly);
+      });
+    }
+    // TODO: how the fuck to fix the cell map properly
+    // also need to get the error situation happening in the controls
+  }
+
   // TODO: fix this to use the internal currentOffset state versus sending in event
   // sort also resets the currentOffset back to 0
   async getNextRecords({ detail: { offset } }) {
@@ -301,6 +386,7 @@ export default class Editor extends LightningElement {
         );
         this.canRequestMore = nextRecords.length === this.layoutModeLimit;
         this.records = [...this.records, ...nextRecords];
+        this.newRecords = this.records;
       } catch (e) {
         window.console.error(e);
       }
@@ -324,6 +410,7 @@ export default class Editor extends LightningElement {
           this.canRequestMore = nextRecords.length === this.layoutModeLimit;
           t.enableInfiniteLoading = this.canRequestMore;
           this.records = [...this.records, ...nextRecords];
+          this.newRecords = this.records;
         }
       );
     }
@@ -365,6 +452,7 @@ export default class Editor extends LightningElement {
     ).then((records) => {
       this.refreshingTable = false;
       this.records = records;
+      this.newRecords = this.records;
       this.canRequestMore = !!this.records.length;
       t.enableInfiniteLoading = this.canRequestMore;
     });
@@ -409,6 +497,7 @@ export default class Editor extends LightningElement {
     try {
       await this.deleteChildRecord(childObject);
       this.records = await this.getChildRecords(this.buildQueryString());
+      this.newRecords = this.records;
     } catch (e) {
       window.console.error("deletion error:", e);
       title = "Oops! Something went wrong!";
@@ -435,6 +524,7 @@ export default class Editor extends LightningElement {
     this.totalRecordsCount = count;
     this.iconName = iconName;
     this.records = records;
+    this.newRecords = this.records;
     if (!this.records.length) {
       this.canRequestMore = false;
     }

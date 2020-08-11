@@ -19,4 +19,36 @@ public with sharing class ChildRecordService {
   public static void deleteChildRecord(SObject childObject) {
     delete childObject;
   }
+
+  @AuraEnabled
+  public static Map<Id, Map<String, String>> updateChildRecords(
+    List<SObject> childRecords
+  ) {
+    Map<Id, Map<String, String>> errorMap = new Map<Id, Map<String, String>>();
+    Database.SaveResult[] srList = Database.update(childRecords, false);
+    for (Integer i = 0; i < srList.size(); i++) {
+      if (!srList.get(i).isSuccess()) {
+        Id targetRecordId = (Id) childRecords.get(i).get('Id');
+        errorMap.put(targetRecordId, new Map<String, String>());
+        // Operation failed, so get all errors
+        for (Database.Error err : srList.get(i).getErrors()) {
+          String fieldString = '';
+          if (err.getFields().size() > 0) {
+            for (String s : err.getFields()) {
+              // TODO: when could this be more than one, dependent fields?
+              // really needto look into that and then adjust this to format string
+              // there's a bug here where custom fields dont come back with __c, thefuck
+              fieldString += s;
+            }
+          } else {
+            fieldString = String.valueOf(i);
+          }
+          errorMap.get(targetRecordId).put(fieldString, err.getMessage());
+          // System.debug(err.getStatusCode() + ': ' + err.getMessage());
+          // System.debug('fields that affected this error: ' + err.getFields());
+        }
+      }
+    }
+    return errorMap;
+  }
 }

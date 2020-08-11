@@ -317,3 +317,7 @@ hierarchy and passing it down all the levels kind of sucks but
 - should draft values be an api'd getter?
 - there are a number of base data table values that should be set for column widths, etc
 - need to keep form submission from happening if any of the inputs that are not modal (or ?) are invalid so need either a way to keep track of that or to query that at form submission request before going to the server, although showing that error would be hard
+- wtf do about inserting new rows inline and then sorting the list? i guess treat it as unsaved changes - i think we may want to slightly reconsider the ui for where the new rows go
+- updates are going to have to not be allOrNone (as this is the only way to get the correct level of detail on errors) it is also how the standard list view handles it for server side errors (client side errors such as missing required fields never even submit the form, which is a similar approach we have with disabling the submission button)
+  - interesting situation here with displaying the errors and not clearing out certain row values to new ones and maintaining the state of the cellStatusMap for those particular ones to recognize that you're effectively still editing, just only editing those cells and not the cells in successful rows (if those exist)
+- What happens if some object that can’t be deleted because of dependent child objects? I'll need to show a toast but still dismiss the modal.

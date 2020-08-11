@@ -20,6 +20,7 @@ export default class InputCell extends LightningElement {
   // should this be a getter? i think it makes most sense
   // to have it like this so that it gets set on connected and then never changes
   // a getter will likely be re-evaluated too frequently?s
+  @track innerValue;
   @track inputDetails;
 
   get isBlank() {
@@ -39,6 +40,7 @@ export default class InputCell extends LightningElement {
     return this.disableInputReason >= 1;
   }
 
+  // TODO: consider set to be modal icon for modal type cells
   get accessIconName() {
     return this.disableInputReason >= 1 ? "utility:lock" : "utility:edit";
   }
@@ -89,8 +91,10 @@ export default class InputCell extends LightningElement {
       detail: {
         rowId: this.rowId,
         field: this.fieldDetail.apiName,
+        value,
         isChanged: true,
-        isInvalid: !target.checkValidity()
+        isInvalid: !target.checkValidity(),
+        reset: this.resetInputValue
       }
     };
     if (value != this.value && !(this.isBlank && value === "")) {
@@ -103,20 +107,19 @@ export default class InputCell extends LightningElement {
     }
   }
 
+  // TODO: adjust this to make it so that you basically can never enter
+  // navigation mode
   arrowKeyPress = (event) => {
     let { keyCode } = event;
     if (keyCode >= 37 && keyCode <= 40) {
-      window.console.log("arrow key pressed");
       event.stopPropagation();
       // event.preventDefault();
     }
   };
   setKeyOveride() {
-    window.console.log("setting");
     this.addEventListener("keydown", this.arrowKeyPress);
   }
   removeKeyOveride() {
-    window.console.log("removing");
     this.removeEventListener("keydown", this.arrowKeyPress);
   }
 
@@ -127,16 +130,22 @@ export default class InputCell extends LightningElement {
     this.isHovering = false;
   };
 
+  resetInputValue = (stylingOnly = false) => {
+    window.console.log("resetting cells", this);
+    if (!stylingOnly) {
+      this.innerValue = this.value;
+      // potential check required although the reset function can only get
+      // registered if the onchange from the input event is dispatched
+      this.template.querySelector("lightning-input").value = this.innerValue;
+    }
+    this.containerClasses = "slds-cell-edit";
+  };
+
   connectedCallback() {
+    this.innerValue = this.value;
     this.editing = this.disableInputReason === 0 ? this.defaultEdit : false;
     this.inputDetails = this.fieldToInput(this.fieldDetail);
     // if editing focus the first available input element
-    if (this.editing) {
-      let input = this.template.querySelector("lightning-input");
-      if (input) {
-        input.focus();
-      }
-    }
 
     this.addEventListener("mouseenter", this.mouseEnter);
     this.addEventListener("mouseleave", this.mouseLeave);
