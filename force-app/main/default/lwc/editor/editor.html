@@ -52,7 +52,11 @@
         can-request-more={canRequestMore}
         layout-mode-limit={layoutModeLimit}
       ></c-tile-list>
-      <div if:true={isTableLayout} style="height: 15rem;">
+      <div
+        if:true={isTableLayout}
+        class="slds-card"
+        style={tableContainerHeight}
+      >
         <div class="slds-is-relative">
           <div if:true={refreshingTable}>
             <lightning-spinner
@@ -80,6 +84,7 @@
         >
         </c-table>
         <!-- <lightning-datatable></lightning-datatable> -->
+
         <c-table-controls
           if:true={hasUnsavedChanges}
           has-errors={hasErrors}

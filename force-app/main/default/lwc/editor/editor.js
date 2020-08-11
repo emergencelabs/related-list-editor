@@ -127,6 +127,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return this.layoutMode > 2;
   }
 
+  get tableContainerHeight() {
+    return `height: ${
+      this.isStandalone ? "25" : "15"
+    }rem;border-top-left-radius: 0px; border-top-right-radius: 0px; border-top: none;`;
+  }
+
   get requiredFields() {
     if (this.childFields) {
       return Object.values(this.childFields).filter(
