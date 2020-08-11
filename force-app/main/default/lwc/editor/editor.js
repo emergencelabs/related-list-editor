@@ -60,6 +60,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
     );
   }
 
+  get blockModalSave() {
+    return this.blockSave || !this.hasUnsavedChanges;
+  }
+
   newDraftValue({
     detail: { rowId, field, value, isChanged, isInvalid, reset }
   }) {
