@@ -323,3 +323,4 @@ hierarchy and passing it down all the levels kind of sucks but
 - What happens if some object that can’t be deleted because of dependent child objects? I'll need to show a toast but still dismiss the modal.
 - in some cases there seems to be a double required star if the input gets marked as required as well? because the input element adds its own star
 - also the display of boolean values needs to change to being a checkbox and not the text representation
+- dependent/controlling fields is kind of complex so im tempted to remove that entirely from the spec although it is doable as the proper info for making it happen can work and it would be in a modal container

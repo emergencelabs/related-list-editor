@@ -50,6 +50,9 @@ export default class InputCell extends LightningElement {
   }
 
   get isRequired() {
+    if (this.fieldDetail.dataType === "Boolean") {
+      return false;
+    }
     return this.fieldDetail.required;
   }
 

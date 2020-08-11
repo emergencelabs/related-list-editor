@@ -6,6 +6,7 @@ import formattedNumber from "./formattedNumber.html";
 import formattedPhone from "./formattedPhone.html";
 import formattedTime from "./formattedTime.html";
 import formattedUrl from "./formattedUrl.html";
+import formattedBoolean from "./formattedBoolean.html";
 
 export default class FormattedTileValue extends LightningElement {
   @api fieldType;
@@ -15,6 +16,12 @@ export default class FormattedTileValue extends LightningElement {
 
   render() {
     switch (this.fieldType) {
+      case "Boolean": {
+        this.details.options = [{ label: "", value: "a" }];
+        this.details.value = this.value ? ["a"] : [];
+        this.details.name = Math.round(Math.random() * 100);
+        return formattedBoolean;
+      }
       case "Date":
       case "DateTime": {
         return formattedDateTime;
