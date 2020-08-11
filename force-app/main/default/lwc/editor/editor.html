@@ -72,6 +72,7 @@
           onloadmore={loadMoreRecords}
           oncellvaluechange={newDraftValue}
           onsort={updateColumnSorting}
+          onrowaction={handleRowAction}
           sorted-by={columnSortColumn}
           sorted-direction={columnSortDirection}
           show-row-number-column
@@ -122,9 +123,10 @@
           key-field="Id"
           onloadmore={loadMoreRecords}
           oncellvaluechange={newDraftValue}
+          onsort={updateColumnSorting}
+          onrowaction={handleRowAction}
           sorted-by={columnSortColumn}
           sorted-direction={columnSortDirection}
-          onsort={updateColumnSorting}
           show-row-number-column
           errors={errors}
         >

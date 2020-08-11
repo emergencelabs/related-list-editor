@@ -1,4 +1,5 @@
 import { LightningElement, api, track } from "lwc";
+import { NavigationMixin } from "lightning/navigation";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 import getIconURL from "@salesforce/apex/IconService.getIconURL";
@@ -12,7 +13,7 @@ import deleteChildRecord from "@salesforce/apex/ChildRecordService.deleteChildRe
 // also need to filter out owner and some consideration may apply for multi currency here?
 const IGNORED_REQUIRED_FIELDS = ["OwnerId"];
 
-export default class Editor extends LightningElement {
+export default class Editor extends NavigationMixin(LightningElement) {
   @api layoutMode;
   @api isStandalone = false;
   @api recordId;
@@ -496,17 +497,8 @@ export default class Editor extends LightningElement {
   handleRowAction(event) {
     const action = event.detail.action;
     const row = event.detail.row;
-    //     switch (action.name) {
-    //         case 'show_details':
-    //             alert('Showing Details: ' + JSON.stringify(row));
-    //             break;
-    //         case 'delete':
-    //             const rows = this.data;
-    //             const rowIndex = rows.indexOf(row);
-    //             rows.splice(rowIndex, 1);
-    //             this.data = rows;
-    //             break;
-    // }
+    window.console.log(JSON.parse(JSON.stringify(action)));
+    window.console.log(JSON.parse(JSON.stringify(row)));
   }
 
   async deleteChildRecord(childObject) {

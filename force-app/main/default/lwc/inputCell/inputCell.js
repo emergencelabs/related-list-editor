@@ -121,7 +121,7 @@ export default class InputCell extends LightningElement {
   // navigation mode
   arrowKeyPress = (event) => {
     let { keyCode } = event;
-    if (keyCode >= 37 && keyCode <= 40) {
+    if ((keyCode >= 37 && keyCode <= 40) || keyCode === 13) {
       event.stopPropagation();
       // event.preventDefault();
     }
