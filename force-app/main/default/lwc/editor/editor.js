@@ -103,24 +103,7 @@ export default class Editor extends LightningElement {
   }
   // TODO: this needs to sync up or just refresh the data table that is behind the modal
   async closeModal({ detail: { isSave } }) {
-    if (isSave) {
-      this.refreshingTable = true;
-      await this.updateChildRecords(this.newRecords);
-      this.records = this.newRecords;
-      this.refreshingTable = false;
-    } else {
-      this.newRecords = this.records;
-    }
-    this.modalIsOpen = false;
-
-    this.columnDetails = {
-      ...this.columnDetails,
-      columns: this.columnDetails.columns.map((detail) => {
-        let clone = { ...detail };
-        clone.typeAttributes.defaultEdit = this.modalIsOpen;
-        return clone;
-      })
-    };
+    await this.commitRecordChange({ detail: { isSave } });
   }
 
   get isMobileNavigation() {
@@ -276,7 +259,9 @@ export default class Editor extends LightningElement {
       listLabel: this.listLabel,
       childObjectApiName: this.childObjectApiName,
       childRecordTypeInfo: null,
-      sortDetails: targetList.sort[0],
+      sortDetails: this.customSortInfo
+        ? this.customSortInfo
+        : this.relatedListInfo.sort[0],
       relationshipField: this.relationshipField,
       columns
     };
@@ -291,11 +276,12 @@ export default class Editor extends LightningElement {
   // in state so that it can persist with whatever the latest sort is for infinite scroll
   // and also allow sort to change
   buildQueryString(offset = 0, customSortString = null) {
+    let sortInfo = this.customSortInfo
+      ? this.customSortInfo
+      : this.relatedListInfo.sort[0];
     let offsetString = `OFFSET ${offset}`;
-    let sortString = `ORDER BY ${this.relatedListInfo.sort[0].column} ${
-      this.relatedListInfo.sort[0].ascending
-        ? "ASC  NULLS LAST"
-        : "DESC  NULLS LAST"
+    let sortString = `ORDER BY ${sortInfo.column} ${
+      sortInfo.ascending ? "ASC  NULLS LAST" : "DESC  NULLS LAST"
     }`;
     let limitString = `LIMIT ${this.layoutModeLimit}`;
     let queryString = `SELECT Id, ${this.relatedListInfo.columns
@@ -354,26 +340,43 @@ export default class Editor extends LightningElement {
           }
         });
       } else {
-        this.errors = {
-          rows: {}
-        };
+        this.resetErrors();
         this.cellStatusMap = {};
         this.resetFuncs.forEach((o) => {
           o.reset(stylingOnly);
         });
+        this.modalIsOpen = false;
       }
 
       this.records = this.newRecords;
       this.refreshingTable = false;
     } else {
+      this.resetErrors();
       this.newRecords = this.records;
       this.cellStatusMap = {};
       this.resetFuncs.forEach((o) => {
         o.reset(stylingOnly);
       });
+      this.modalIsOpen = false;
+      this.resetColumnsEdit();
     }
-    // TODO: how the fuck to fix the cell map properly
-    // also need to get the error situation happening in the controls
+    return !this.hasErrors;
+  }
+
+  resetErrors() {
+    this.errors = {
+      rows: {}
+    };
+  }
+  resetColumnsEdit() {
+    this.columnDetails = {
+      ...this.columnDetails,
+      columns: this.columnDetails.columns.map((detail) => {
+        let clone = { ...detail };
+        clone.typeAttributes.defaultEdit = this.modalIsOpen;
+        return clone;
+      })
+    };
   }
 
   // TODO: fix this to use the internal currentOffset state versus sending in event
@@ -424,12 +427,16 @@ export default class Editor extends LightningElement {
     this.confirmLoseChanges = false;
     if (isSave) {
       this.cellStatusMap = {};
+      this.resetFuncs.forEach((o) => {
+        o.reset();
+      });
       this.updateColumnSorting(this.columnSortingEvent);
       this.columnSortingEvent = null;
     }
   }
   // TODO: need to potentially modify the layoutModeLimit as well as the table container height
   // if standalone desktop
+  customSortInfo = null;
   updateColumnSorting(event) {
     // TODO: this same concept will apply for clicking new
     // TODO: why when sort does it not clear out changes? if the same row is still onscreen
@@ -445,6 +452,10 @@ export default class Editor extends LightningElement {
     t.findElement().scrollTop = 0;
     t.sortedBy = fieldName;
     t.sortedDirection = sortDirection;
+    this.customSortInfo = {
+      column: fieldName,
+      ascending: sortDirection === "asc"
+    };
     this.currentOffset = 0;
     this.refreshingTable = true;
     let sortString = `ORDER BY ${fieldName} ${sortDirection.toUpperCase()} NULLS LAST`;
@@ -460,8 +471,21 @@ export default class Editor extends LightningElement {
   }
 
   get columnSortDirection() {
+    let sortInfo = this.customSortInfo
+      ? this.customSortInfo
+      : this.relatedListInfo.sort[0];
     if (this.relatedListInfo) {
-      return this.relatedListInfo.sort[0].ascending ? "asc" : "desc";
+      return sortInfo.ascending ? "asc" : "desc";
+    }
+    return null;
+  }
+
+  get columnSortColumn() {
+    let sortInfo = this.customSortInfo
+      ? this.customSortInfo
+      : this.relatedListInfo.sort[0];
+    if (this.relatedListInfo) {
+      return sortInfo.column;
     }
     return null;
   }

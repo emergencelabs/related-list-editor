@@ -15,6 +15,7 @@
         <slot></slot>
       </div>
       <footer class="slds-modal__footer">
+        <slot name="error"></slot>
         <lightning-button
           variant="neutral"
           onclick={cancel}

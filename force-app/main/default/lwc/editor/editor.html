@@ -52,7 +52,7 @@
         can-request-more={canRequestMore}
         layout-mode-limit={layoutModeLimit}
       ></c-tile-list>
-      <div style="height: 15rem;" if:true={isTableLayout}>
+      <div if:true={isTableLayout} style="height: 15rem;">
         <div class="slds-is-relative">
           <div if:true={refreshingTable}>
             <lightning-spinner
@@ -63,6 +63,7 @@
           </div>
         </div>
         <c-table
+          if:false={modalIsOpen}
           columns={columnDetails.columns}
           data={records}
           enable-infinite-loading
@@ -70,9 +71,8 @@
           key-field="Id"
           onloadmore={loadMoreRecords}
           oncellvaluechange={newDraftValue}
-          oninvalidcell={setInvalidCell}
           onsort={updateColumnSorting}
-          sorted-by={columnDetails.sortDetails.column}
+          sorted-by={columnSortColumn}
           sorted-direction={columnSortDirection}
           show-row-number-column
           errors={errors}
@@ -96,7 +96,16 @@
     modal-title={listLabel}
     onclose={closeModal}
     block-save={blockSave}
-    ><div style="min-height: 100px;" class="slds-is-relative">
+  >
+    <lightning-icon
+      slot="error"
+      if:true={hasErrors}
+      variant="error"
+      size="small"
+      icon-name="utility:error"
+      class="slds-m-right_small"
+    ></lightning-icon>
+    <div style="min-height: 100px;" class="slds-is-relative">
       <div style="height: 20rem;">
         <div if:true={refreshingTable}>
           <lightning-spinner
@@ -113,7 +122,7 @@
           key-field="Id"
           onloadmore={loadMoreRecords}
           oncellvaluechange={newDraftValue}
-          sorted-by={columnDetails.sortDetails.column}
+          sorted-by={columnSortColumn}
           sorted-direction={columnSortDirection}
           onsort={updateColumnSorting}
           show-row-number-column
@@ -122,18 +131,18 @@
         </c-table>
       </div>
     </div>
+    <c-slotted-modal
+      if:true={confirmLoseChanges}
+      modal-title="You have unsaved changes"
+      onclose={confirmDiscard}
+      save-button-label="Discard Changes"
+      size="small"
+    >
+      <div>
+        <p class="slds-align_absolute-center slds-m-bottom_small">
+          Are you sure you want to discard these changes?
+        </p>
+      </div></c-slotted-modal
+    >
   </c-slotted-modal>
-  <c-slotted-modal
-    if:true={confirmLoseChanges}
-    modal-title="You have unsaved changes"
-    onclose={confirmDiscard}
-    save-button-label="Discard Changes"
-    size="small"
-  >
-    <div>
-      <p class="slds-align_absolute-center slds-m-bottom_small">
-        Are you sure you want to discard these changes?
-      </p>
-    </div></c-slotted-modal
-  >
 </template>
