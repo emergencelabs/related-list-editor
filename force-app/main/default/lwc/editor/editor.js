@@ -25,7 +25,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   @api childRecordTypeInfo;
 
   @track iconName;
-  @track columnDetails;
+  @track tableColumns;
 
   @track loading = true;
 
@@ -97,14 +97,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   @track modalIsOpen = false;
   launchModal() {
     this.modalIsOpen = true;
-    this.columnDetails = {
-      ...this.columnDetails,
-      columns: this.columnDetails.columns.map((detail) => {
-        let clone = { ...detail };
-        clone.typeAttributes.defaultEdit = this.modalIsOpen;
-        return clone;
-      })
-    };
+    this.resetColumnsEdit();
   }
   // TODO: this needs to sync up or just refresh the data table that is behind the modal
   async closeModal({ detail: { isSave } }) {
@@ -196,20 +189,28 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   async fetchIcon() {
-    let iconList = await getIconURL({
-      objectName: this.childObjectApiName
-    });
-    if (iconList.length) {
-      let { Url: url } = iconList[0].Icons[0];
-      let lastSlashIndex = url.lastIndexOf("/");
-      let svgName = url.substring(lastSlashIndex + 1, url.lastIndexOf(".svg"));
-      let category = url.substring(
-        url.substring(0, lastSlashIndex).lastIndexOf("/") + 1,
-        lastSlashIndex
-      );
-      return `${category}:${svgName}`;
+    try {
+      let iconList = await getIconURL({
+        objectName: this.childObjectApiName
+      });
+      if (iconList.length) {
+        let { Url: url } = iconList[0].Icons[0];
+        let lastSlashIndex = url.lastIndexOf("/");
+        let svgName = url.substring(
+          lastSlashIndex + 1,
+          url.lastIndexOf(".svg")
+        );
+        let category = url.substring(
+          url.substring(0, lastSlashIndex).lastIndexOf("/") + 1,
+          lastSlashIndex
+        );
+        return `${category}:${svgName}`;
+      }
+      return "standard:default";
+    } catch (e) {
+      // TODO: look more into this possible error, for logging, etc
+      return "standard:default";
     }
-    return "standard:default";
   }
 
   // TODO: you can add disabled: true to disable an action
@@ -224,8 +225,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     { label: "Delete", value: "delete", iconName: "utility:delete" }
   ];
 
-  // TODO: can this be removed in favor of its individual parts?
-  populateListInfo(targetList) {
+  populateTableColumns(targetList) {
     let columns = targetList.columns.map((col) => {
       let { fieldApiName, lookupId, label } = col;
       let normalizedApiName = fieldApiName;
@@ -266,16 +266,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
         }
       ];
     }
-    return {
-      listLabel: this.listLabel,
-      childObjectApiName: this.childObjectApiName,
-      childRecordTypeInfo: null,
-      sortDetails: this.customSortInfo
-        ? this.customSortInfo
-        : this.relatedListInfo.sort[0],
-      relationshipField: this.relationshipField,
-      columns
-    };
+    return columns;
   }
 
   get layoutModeLimit() {
@@ -380,14 +371,11 @@ export default class Editor extends NavigationMixin(LightningElement) {
     };
   }
   resetColumnsEdit() {
-    this.columnDetails = {
-      ...this.columnDetails,
-      columns: this.columnDetails.columns.map((detail) => {
-        let clone = { ...detail };
-        clone.typeAttributes.defaultEdit = this.modalIsOpen;
-        return clone;
-      })
-    };
+    this.tableColumns = this.tableColumns.map((detail) => {
+      let clone = { ...detail };
+      clone.typeAttributes.defaultEdit = this.modalIsOpen;
+      return clone;
+    });
   }
 
   // TODO: fix this to use the internal currentOffset state versus sending in event
@@ -542,7 +530,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   async connectedCallback() {
-    this.columnDetails = this.populateListInfo(this.relatedListInfo);
+    this.tableColumns = this.populateTableColumns(this.relatedListInfo);
     let [count, records, iconName] = await Promise.all([
       this.getRecordCount(this.buildCountQueryString()),
       this.getChildRecords(this.buildQueryString()),
