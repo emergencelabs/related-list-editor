@@ -12,12 +12,12 @@
           <a if:true={link} href={link}>{referenceValue.Name}</a>
           <c-formatted-tile-value
             if:false={link}
-            value={innerValue}
+            value={value}
             field-type={fieldDetail.dataType}
           ></c-formatted-tile-value>
         </template>
         <template if:true={isNameField}>
-          <a href={nameLink}>{innerValue}</a>
+          <a href={nameLink}>{value}</a>
         </template>
         <!-- <span>{value}</span> -->
         <lightning-button-icon
@@ -33,7 +33,7 @@
         if:true={isBaseInput}
         variant="label-hidden"
         required={isRequired}
-        value={innerValue}
+        value={value}
         type={inputDetails.componentDetails.type}
         formatter={inputDetails.componentDetails.formatter}
         disabled={disableInput}
@@ -54,14 +54,22 @@
         class="slds-grid slds-grid_align-end slds-box slds-grid_vertical-align-center"
         style="padding: 5px;"
       >
-        <span>{innerValue}</span>
+        <span>{value}</span>
         <lightning-button-icon
           class="slds-m-left_small"
           variant="bare"
           icon-name="utility:new_window"
         ></lightning-button-icon>
       </div>
-      <div if:true={isPicklistInput}>Picklist</div>
+      <div if:true={isPicklistInput}>
+        <c-picklist-input
+          value={value}
+          field-api-name={fieldDetail.apiName}
+          object-api-name={objectApiName}
+          record-type-id={recordTypeId}
+          onselection={changeInputValue}
+        ></c-picklist-input>
+      </div>
       <!-- <c-modal-input ></c-modal-input>
       <c-picklist-input
         if:true={isPicklistInput}

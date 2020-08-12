@@ -40,7 +40,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   @track currentOffset = 0;
 
   @track cellStatusMap = {};
-  resetFuncs = new Set();
+  resetFuncs = [];
 
   @track errors = {
     rows: {}
@@ -67,10 +67,21 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return this.blockSave || !this.hasUnsavedChanges;
   }
 
+  addRowToResetFuncs(resetFunc) {
+    let indexOfExisting = this.resetFuncs.findIndex(
+      (o) => o.rowId === resetFunc.rowId
+    );
+    if (indexOfExisting >= 0) {
+      this.resetFuncs[indexOfExisting] = resetFunc;
+    } else {
+      this.resetFuncs.push(resetFunc);
+    }
+  }
+
   newDraftValue({
     detail: { rowId, field, value, isChanged, isInvalid, reset }
   }) {
-    this.resetFuncs.add({ rowId, field, reset });
+    this.addRowToResetFuncs({ rowId, field, reset });
     let cell = this.cellStatusMap[rowId];
     if (cell) {
       cell[field] = { isChanged, isInvalid };
@@ -78,9 +89,14 @@ export default class Editor extends NavigationMixin(LightningElement) {
       this.cellStatusMap[rowId] = { [field]: { isChanged, isInvalid } };
     }
     if (!isInvalid) {
-      let targetRecord = this.newRecords.find((r) => r.Id === rowId);
+      let targetRecordIndex = this.newRecords.findIndex((r) => r.Id === rowId);
+      let targetRecord =
+        targetRecordIndex >= 0
+          ? { ...this.newRecords[targetRecordIndex] }
+          : null;
       if (targetRecord) {
         targetRecord[field] = value;
+        this.newRecords[targetRecordIndex] = targetRecord;
       }
     }
     this.cellStatusMap = { ...this.cellStatusMap };
@@ -146,11 +162,11 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   get missingRequiredFields() {
-    return this.requiredFields.filter(({ apiName }) => {
+    return this.requiredFields.filter(({ apiName, dataType }) => {
       return (
         this.relatedListInfo.columns.filter(
           (columnField) => columnField.fieldApiName === apiName
-        ).length === 0
+        ).length === 0 && dataType !== "Boolean"
       );
     });
   }
@@ -251,9 +267,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
                 fieldName: fieldDetail.relationshipName
               }
             : null,
-          objectApiName: this.objectApiName,
-          defaultEdit: this.isStandalone || this.modalIsOpen
-          // recordTypeId: this.listInfo.recordTypeId,
+          objectApiName: this.childObjectApiName,
+          defaultEdit: this.isStandalone || this.modalIsOpen,
+          recordTypeId: { fieldName: "RecordTypeId" }
         },
         fieldName: fieldApiName,
         fieldDetail,
@@ -310,6 +326,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
 
   // TODO: need to remove the 'RecordTypeId' column from records before updates
   // and for create as well?
+  // its confirmed that master record type id is the same across all ojbjects and orgs
+  // so it could be left off here in those cases where there's no record types but then
+  // it creates some branching paths for when it does exist, TBD
+  // record type id cant be added to the column list thankfully
   async getChildRecords(queryString) {
     // NOTE: unfortunately these cannot run in parrallel as the recordTypeMap requires the Ids
     let childRecords = await getChildRecords({ queryString });
@@ -333,8 +353,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return updateChildRecords({ childRecords });
   }
 
-  // TODO add toast here with count information about if all, some, or none
-  // were successfully updated
   async commitRecordChange({ detail: { isSave } }) {
     var stylingOnly = false;
     if (isSave) {
@@ -376,17 +394,24 @@ export default class Editor extends NavigationMixin(LightningElement) {
           });
         this.resetFuncs.forEach((o) => {
           if (!errors[o.rowId]) {
-            o.reset(stylingOnly);
+            o.reset(
+              stylingOnly,
+              this.newRecords.find((r) => r.Id === o.rowId)[o.field]
+            );
           }
         });
       } else {
         this.resetErrors();
         this.cellStatusMap = {};
         this.resetFuncs.forEach((o) => {
-          o.reset(stylingOnly);
+          o.reset(
+            stylingOnly,
+            this.newRecords.find((r) => r.Id === o.rowId)[o.field]
+          );
         });
         this.modalIsOpen = false;
       }
+      this.records = [...this.newRecords];
       this.dispatchEvent(
         new ShowToastEvent({
           title,
@@ -394,11 +419,11 @@ export default class Editor extends NavigationMixin(LightningElement) {
           variant
         })
       );
-      this.records = this.newRecords;
       this.refreshingTable = false;
     } else {
       this.resetErrors();
-      this.newRecords = this.records;
+      this.newRecords = [...this.records];
+
       this.cellStatusMap = {};
       this.resetFuncs.forEach((o) => {
         o.reset(stylingOnly);
@@ -431,7 +456,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
         );
         this.canRequestMore = nextRecords.length === this.layoutModeLimit;
         this.records = [...this.records, ...nextRecords];
-        this.newRecords = this.records;
+        this.newRecords = [...this.records];
       } catch (e) {
         window.console.error(e);
       }
@@ -455,7 +480,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
           this.canRequestMore = nextRecords.length === this.layoutModeLimit;
           t.enableInfiniteLoading = this.canRequestMore;
           this.records = [...this.records, ...nextRecords];
-          this.newRecords = this.records;
+          this.newRecords = [...this.records];
         }
       );
     }
@@ -504,7 +529,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     ).then((records) => {
       this.refreshingTable = false;
       this.records = records;
-      this.newRecords = this.records;
+      this.newRecords = [...this.records];
       this.canRequestMore = !!this.records.length;
       t.enableInfiniteLoading = this.canRequestMore;
     });
@@ -552,7 +577,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     try {
       await this.deleteChildRecord(childObject);
       this.records = await this.getChildRecords(this.buildQueryString());
-      this.newRecords = this.records;
+      this.newRecords = [...this.records];
     } catch (e) {
       let pageError = e.body.pageErrors[0];
       message = pageError ? pageError.message : "";
@@ -581,7 +606,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     this.totalRecordsCount = count;
     this.iconName = iconName;
     this.records = records;
-    this.newRecords = this.records;
+    this.newRecords = [...this.records];
     if (!this.records.length) {
       this.canRequestMore = false;
     }

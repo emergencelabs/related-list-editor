@@ -20,7 +20,7 @@ export default class InputCell extends LightningElement {
   // should this be a getter? i think it makes most sense
   // to have it like this so that it gets set on connected and then never changes
   // a getter will likely be re-evaluated too frequently?s
-  @track innerValue;
+  @track originalValue;
   @track inputDetails;
 
   get isBlank() {
@@ -84,9 +84,15 @@ export default class InputCell extends LightningElement {
   // and other considerations
   changeInputValue(event) {
     let { target, detail } = event;
-    let { value } = target;
-    if (detail && this.fieldDetail.dataType === "Boolean") {
-      value = detail.checked;
+    let value;
+    if (detail) {
+      if (this.fieldDetail.dataType === "Boolean") {
+        value = detail.checked;
+      } else {
+        value = detail.value;
+      }
+    } else if (target) {
+      value = target.value;
     }
 
     // type coercion in check here as this is always going to be a string
@@ -94,6 +100,7 @@ export default class InputCell extends LightningElement {
     // more consideration will apply for lookups and how certain modal elements
     // are handled - potentially need to extract this logic out for use in multiple
     // functions
+
     let eventDetail = {
       composed: true,
       bubbles: true,
@@ -103,10 +110,12 @@ export default class InputCell extends LightningElement {
         field: this.fieldDetail.apiName,
         value,
         isChanged: true,
-        isInvalid: !target.checkValidity(),
+        isInvalid:
+          detail && detail.isPicklist ? false : !target.checkValidity(),
         reset: this.resetInputValue
       }
     };
+
     if (value != this.value && !(this.isBlank && value === "")) {
       this.containerClasses = this.containerClasses + " slds-is-edited";
       this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
@@ -140,19 +149,34 @@ export default class InputCell extends LightningElement {
     this.isHovering = false;
   };
 
-  resetInputValue = (stylingOnly = false) => {
-    window.console.log("resetting cells", this);
+  // TODO: does this need to also find picklists, and if so, it needs to be exposed from container
+  resetInputValue = (stylingOnly = false, newOriginalValue) => {
+    let componentToSelector = {
+      input: "lightning-input",
+      combobox: "c-picklist-input"
+    };
+    let input = this.template.querySelector(
+      componentToSelector[this.inputDetails.component]
+    );
     if (!stylingOnly) {
-      this.innerValue = this.value;
-      // potential check required although the reset function can only get
-      // registered if the onchange from the input event is dispatched
-      this.template.querySelector("lightning-input").value = this.innerValue;
+      if (input) {
+        if (this.inputDetails.component === "combobox") {
+          input.reset();
+        } else if (this.inputDetails.component === "input")
+          input.value = this.originalValue;
+      }
+    }
+    if (newOriginalValue) {
+      this.originalValue = newOriginalValue;
+      if (this.inputDetails.component === "combobox") {
+        input.updateOriginalValue(newOriginalValue);
+      }
     }
     this.containerClasses = "slds-cell-edit";
   };
 
   connectedCallback() {
-    this.innerValue = this.value;
+    this.originalValue = this.value;
     this.editing = this.disableInputReason === 0 ? this.defaultEdit : false;
     this.inputDetails = this.fieldToInput(this.fieldDetail);
     // if editing focus the first available input element
