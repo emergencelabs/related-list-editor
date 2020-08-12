@@ -1,6 +1,9 @@
 public with sharing class ChildRecordService {
+  // NOTE: there is technically a query within the loop here so it seems like
+  // i'll need to change the approach to include the recordTypeId in the query and do the
+  // bs to get catching it when it doesnt exist again but this will work for now
   @AuraEnabled
-  public static List<SObject> getChildRecords(String queryString) {
+  public static List<Object> getChildRecords(String queryString) {
     String sanitizedQueryString = queryString.escapeHtml4()
       .replace('&#39;', '\'');
     return Database.query(sanitizedQueryString);

@@ -4,6 +4,9 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 import getIconURL from "@salesforce/apex/IconService.getIconURL";
 import getCount from "@salesforce/apex/ChildRecordService.getCount";
+
+import getRecordTypeIdForList from "@salesforce/apex/RecordTypeService.getRecordTypeIdForList";
+
 import getChildRecords from "@salesforce/apex/ChildRecordService.getChildRecords";
 import updateChildRecords from "@salesforce/apex/ChildRecordService.updateChildRecords";
 import deleteChildRecord from "@salesforce/apex/ChildRecordService.deleteChildRecord";
@@ -142,28 +145,29 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return [];
   }
 
-  get requireNewModal() {
-    if (this.isTileLayout) {
-      return true;
-    }
-    let missingFields = this.requiredFields
+  get missingRequiredFields() {
+    return this.requiredFields
       .map((requiredField) => requiredField.apiName)
       .filter((requiredFieldApiName) => {
         return (
           this.relatedListInfo.columns.filter(
-            (columnField) => columnField.name === requiredFieldApiName
+            (columnField) => columnField.fieldApiName === requiredFieldApiName
           ).length === 0
         );
       });
-    return missingFields.length > 0;
+  }
+
+  get requireNewModal() {
+    if (this.isTileLayout) {
+      return true;
+    }
+    return this.missingRequiredFields.length > 0;
   }
 
   get reasonForNewModal() {
     if (this.requireNewModal && !this.isTileLayout) {
-      return `The following required fields are not in the column list: ${this.requiredFields
-        .map(({ label }) => {
-          return label;
-        })
+      return `The following required fields are not in the column list: ${this.missingRequiredFields
+        .map(({ label }) => label)
         .join(", ")}`;
     }
     return null;
@@ -293,7 +297,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
     } = '${this.recordId}' ${
       customSortString !== null ? customSortString : sortString
     } ${limitString} ${offsetString}`;
-    window.console.log(queryString);
     return queryString;
   }
 
@@ -305,12 +308,29 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return getCount({ queryString });
   }
 
+  // TODO: need to remove the 'RecordTypeId' column from records before updates
+  // and for create as well?
   async getChildRecords(queryString) {
-    return getChildRecords({ queryString });
+    // NOTE: unfortunately these cannot run in parrallel as the recordTypeMap requires the Ids
+    let childRecords = await getChildRecords({ queryString });
+    let recordTypeMap = await getRecordTypeIdForList({
+      objectApiName: this.childObjectApiName,
+      recordIds: childRecords.map((r) => r.Id)
+    });
+    return childRecords.map((r) => {
+      let clone = { ...r };
+      clone.RecordTypeId = recordTypeMap[r.Id] || recordTypeMap.Default;
+      return clone;
+    });
   }
 
   async updateChildRecords(records) {
-    return updateChildRecords({ childRecords: records });
+    let childRecords = records.map((r) => {
+      let clone = { ...r };
+      delete clone.RecordTypeId;
+      return clone;
+    });
+    return updateChildRecords({ childRecords });
   }
 
   // TODO add toast here with count information about if all, some, or none
@@ -384,8 +404,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
         o.reset(stylingOnly);
       });
       this.modalIsOpen = false;
-      this.resetColumnsEdit();
     }
+    this.resetColumnsEdit();
     return !this.hasErrors;
   }
 
@@ -402,8 +422,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
     });
   }
 
-  // TODO: fix this to use the internal currentOffset state versus sending in event
-  // sort also resets the currentOffset back to 0
   async getNextRecords({ detail: { offset } }) {
     this.loading = true;
     if (offset <= 2000) {
@@ -462,7 +480,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
   customSortInfo = null;
   updateColumnSorting(event) {
     // TODO: this same concept will apply for clicking new
-    // TODO: why when sort does it not clear out changes? if the same row is still onscreen
     if (this.hasUnsavedChanges) {
       this.columnSortingEvent = event;
       this.confirmLoseChanges = true;

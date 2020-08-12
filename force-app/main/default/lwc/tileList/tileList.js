@@ -34,9 +34,6 @@ export default class TileList extends NavigationMixin(LightningElement) {
     );
   }
 
-  // TODO: need to know what the previous offset value was so that it can be continually
-  // incremented
-  // using a 0 start and continual increment by 10 is okay i guess
   viewAll() {
     if (this.isStandalone) {
       this.offset += this.layoutModeLimit;
