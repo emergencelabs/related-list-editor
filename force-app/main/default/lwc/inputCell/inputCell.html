@@ -47,6 +47,7 @@
         onfocus={setKeyOveride}
         onblur={removeKeyOveride}
         autocomplete="off"
+        style="min-height: calc(var(--lwc-heightInput, 1.875rem) + (1px * 2));"
       ></lightning-input>
       <div
         if:true={isModalInput}
@@ -55,6 +56,7 @@
       >
         <span>{innerValue}</span>
         <lightning-button-icon
+          class="slds-m-left_small"
           variant="bare"
           icon-name="utility:new_window"
         ></lightning-button-icon>

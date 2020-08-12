@@ -313,13 +313,31 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return updateChildRecords({ childRecords: records });
   }
 
+  // TODO add toast here with count information about if all, some, or none
+  // were successfully updated
   async commitRecordChange({ detail: { isSave } }) {
     var stylingOnly = false;
     if (isSave) {
       stylingOnly = true;
       this.refreshingTable = true;
       let errors = await this.updateChildRecords(this.newRecords);
-      if (Object.keys(errors).length) {
+
+      let commitAttemptCount = Object.keys(this.cellStatusMap).length;
+      let title = `${commitAttemptCount} records successfully updated`;
+      let variant = "success";
+      let message = "";
+
+      let errorCount = Object.keys(errors).length;
+      if (errorCount) {
+        if (errorCount === commitAttemptCount) {
+          title = `${errorCount} records were unable to be updated`;
+          variant = "error";
+        } else {
+          title = `${errorCount} of ${commitAttemptCount} records successfully updated`;
+          variant = "warning";
+        }
+        message = `Details on the ${errorCount} unsaved records are available in the table`;
+
         let errorObj = {
           rows: {}
         };
@@ -349,7 +367,13 @@ export default class Editor extends NavigationMixin(LightningElement) {
         });
         this.modalIsOpen = false;
       }
-
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title,
+          message,
+          variant
+        })
+      );
       this.records = this.newRecords;
       this.refreshingTable = false;
     } else {
@@ -504,8 +528,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   async requestDelete({ detail: { childObject } }) {
-    // TODO: update this with record details if possible?
-    // also update the failure to include reason if possible
     this.loading = true;
     let title = `${childObject.Name} Successfully Deleted`;
     let variant = "success";
