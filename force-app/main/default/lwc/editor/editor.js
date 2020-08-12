@@ -146,15 +146,13 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   get missingRequiredFields() {
-    return this.requiredFields
-      .map((requiredField) => requiredField.apiName)
-      .filter((requiredFieldApiName) => {
-        return (
-          this.relatedListInfo.columns.filter(
-            (columnField) => columnField.fieldApiName === requiredFieldApiName
-          ).length === 0
-        );
-      });
+    return this.requiredFields.filter(({ apiName }) => {
+      return (
+        this.relatedListInfo.columns.filter(
+          (columnField) => columnField.fieldApiName === apiName
+        ).length === 0
+      );
+    });
   }
 
   get requireNewModal() {
@@ -167,7 +165,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
   get reasonForNewModal() {
     if (this.requireNewModal && !this.isTileLayout) {
       return `The following required fields are not in the column list: ${this.missingRequiredFields
-        .map(({ label }) => label)
+        .map(({ label }) => {
+          return label;
+        })
         .join(", ")}`;
     }
     return null;
