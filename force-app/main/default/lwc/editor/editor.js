@@ -507,15 +507,18 @@ export default class Editor extends NavigationMixin(LightningElement) {
     // TODO: update this with record details if possible?
     // also update the failure to include reason if possible
     this.loading = true;
-    let title = "Record Deleted";
+    let title = `${childObject.Name} Successfully Deleted`;
     let variant = "success";
+    let message = "";
     try {
       await this.deleteChildRecord(childObject);
       this.records = await this.getChildRecords(this.buildQueryString());
       this.newRecords = this.records;
     } catch (e) {
-      window.console.error("deletion error:", e);
-      title = "Oops! Something went wrong!";
+      let pageError = e.body.pageErrors[0];
+      message = pageError ? pageError.message : "";
+      //window.console.error("deletion error:", e);
+      title = `Something went wrong deleting ${childObject.Name}`;
       variant = "error";
     }
     this.loading = false;
@@ -523,7 +526,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     this.dispatchEvent(
       new ShowToastEvent({
         title,
-        // message: this.message,
+        message,
         variant
       })
     );
