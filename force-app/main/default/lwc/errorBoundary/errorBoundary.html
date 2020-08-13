@@ -37,7 +37,13 @@
       </div>
       <footer class="slds-popover__footer">
         <div class="slds-grid slds-grid_vertical-align-center">
-          <p>Footer Item</p>
+          Try refreshing the page:
+          <lightning-button
+            label="Refresh Page"
+            variant="base"
+            onclick={reload}
+            class="slds-m-left_small"
+          ></lightning-button>
         </div>
       </footer>
     </section>

@@ -55,6 +55,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
     );
   }
 
+  get showTableControls() {
+    return this.hasUnsavedChanges && !this.modalIsOpen;
+  }
+
   // TODO: evaluate if save should be disabled if there are no edits at all
   // for when in expanded modal view
   get blockSave() {
@@ -107,6 +111,18 @@ export default class Editor extends NavigationMixin(LightningElement) {
       return `${this.layoutModeLimit}+`;
     }
     return `${this.totalRecordsCount}`;
+  }
+
+  get backdropStyleString() {
+    let parentModal = this.template.querySelector(
+      "c-slotted-modal.parent-modal"
+    );
+    let style = "";
+    if (parentModal) {
+      style = parentModal.getDimensions();
+    }
+    window.console.log({ style });
+    return style;
   }
 
   // TODO: likely need to call the confirmation here on cancel
@@ -491,9 +507,38 @@ export default class Editor extends NavigationMixin(LightningElement) {
     }
   }
 
+  navigate(actionName, recordId) {
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId,
+        actionName
+      }
+    });
+  }
+
   @track refreshingTable = false;
   @track confirmLoseChanges = false;
-  columnSortingEvent = null;
+
+  currentAction = null;
+  actionTypeToFunc = {
+    view: {
+      func: this.navigate,
+      args: []
+    },
+    edit: {
+      func: this.navigate,
+      args: []
+    },
+    delete: {
+      func: () => {
+        window.console.log("calling delete");
+      },
+      args: []
+    },
+    sort: { func: this.updateColumnSorting, args: [] }
+  };
+
   confirmDiscard({ detail: { isSave } }) {
     this.confirmLoseChanges = false;
     if (isSave) {
@@ -501,17 +546,44 @@ export default class Editor extends NavigationMixin(LightningElement) {
       this.resetFuncs.forEach((o) => {
         o.reset();
       });
-      this.updateColumnSorting(this.columnSortingEvent);
-      this.columnSortingEvent = null;
+      let targetAction = this.actionTypeToFunc[this.currentAction];
+      targetAction.func.apply(this, targetAction.args);
+      targetAction.args = [];
     }
   }
+
+  // TODO: set this up
+  // also need to get a confirmation modal for if any of the options and
+  // has unsaved changes
+  // could create a map of actiontype to function so that
+  // when this has to pop the modal we can just store the actionType
+  // and then once chosen either clear type and if confirm call actionType func
+
+  handleRowAction(event) {
+    const { value } = event.detail.action;
+    const row = event.detail.row;
+    let needsConfirmation = value === "delete" || this.hasUnsavedChanges;
+    this.currentAction = value;
+    this.actionTypeToFunc[value].args = [value, row.Id];
+    if (needsConfirmation) {
+      this.confirmLoseChanges = true;
+    } else {
+      let targetAction = this.actionTypeToFunc[this.currentAction];
+      targetAction.func.apply(this, targetAction.args);
+    }
+
+    // window.console.log(JSON.parse(JSON.stringify(action)));
+    // window.console.log(JSON.parse(JSON.stringify(row)));
+  }
+
   // TODO: need to potentially modify the layoutModeLimit as well as the table container height
   // if standalone desktop
   customSortInfo = null;
   updateColumnSorting(event) {
     // TODO: this same concept will apply for clicking new
     if (this.hasUnsavedChanges) {
-      this.columnSortingEvent = event;
+      this.currentAction = "sort";
+      this.actionTypeToFunc.sort.args = [event];
       this.confirmLoseChanges = true;
       return;
     }
@@ -558,16 +630,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
       return sortInfo.column;
     }
     return null;
-  }
-
-  // TODO: set this up
-  // also need to get a confirmation modal for if any of the options and
-  // has unsaved changes
-  handleRowAction(event) {
-    const action = event.detail.action;
-    const row = event.detail.row;
-    window.console.log(JSON.parse(JSON.stringify(action)));
-    window.console.log(JSON.parse(JSON.stringify(row)));
   }
 
   async deleteChildRecord(childObject) {

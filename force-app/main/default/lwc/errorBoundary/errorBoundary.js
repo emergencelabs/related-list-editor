@@ -19,4 +19,8 @@ export default class ErrorBoundary extends LightningElement {
     if (error) this.error = error;
     if (stack) this.stack = stack;
   }
+
+  reload() {
+    window.location.reload();
+  }
 }

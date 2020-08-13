@@ -101,7 +101,7 @@
           ></div>
         </div>
         <c-table-controls
-          if:true={hasUnsavedChanges}
+          if:true={showTableControls}
           has-errors={hasErrors}
           block-save={blockSave}
           oncommit={commitRecordChange}
@@ -117,6 +117,7 @@
     modal-title={listLabel}
     onclose={closeModal}
     block-save={blockModalSave}
+    class="parent-modal"
   >
     <lightning-icon
       slot="error"
@@ -135,6 +136,7 @@
             variant="brand"
           ></lightning-spinner>
         </div>
+
         <c-table
           columns={tableColumns}
           data={records}
@@ -159,6 +161,7 @@
       onclose={confirmDiscard}
       save-button-label="Discard Changes"
       size="small"
+      custom-backdrop-style={backdropStyleString}
     >
       <div>
         <p class="slds-align_absolute-center slds-m-bottom_small">
@@ -167,4 +170,19 @@
       </div></c-slotted-modal
     >
   </c-slotted-modal>
+  <template if:false={modalIsOpen}>
+    <c-slotted-modal
+      if:true={confirmLoseChanges}
+      modal-title="You have unsaved changes"
+      onclose={confirmDiscard}
+      save-button-label="Discard Changes"
+      size="small"
+    >
+      <div>
+        <p class="slds-align_absolute-center slds-m-bottom_small">
+          Are you sure you want to discard these changes?
+        </p>
+      </div></c-slotted-modal
+    >
+  </template>
 </template>
