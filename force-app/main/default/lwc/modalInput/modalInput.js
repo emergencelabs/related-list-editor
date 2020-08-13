@@ -40,6 +40,20 @@ export default class ModalInput extends LightningElement {
     return null;
   }
 
+  arrowKeyPress = (event) => {
+    let { keyCode } = event;
+    if ((keyCode >= 37 && keyCode <= 40) || keyCode === 13) {
+      event.stopPropagation();
+      // event.preventDefault();
+    }
+  };
+  setKeyOveride() {
+    this.addEventListener("keydown", this.arrowKeyPress);
+  }
+  removeKeyOveride() {
+    this.removeEventListener("keydown", this.arrowKeyPress);
+  }
+
   @api getValue() {
     if (this.type === "multipicklist") {
       return this.template

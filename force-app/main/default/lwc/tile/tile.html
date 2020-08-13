@@ -27,6 +27,7 @@
           class="slds-item_detail slds-truncate"
           title={field.value}
           key={field.value}
+          style="max-height: 100px; overflow: scroll;"
         >
           <a if:true={field.link} href={field.link}>{field.value}</a>
 

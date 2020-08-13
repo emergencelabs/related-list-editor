@@ -15,6 +15,7 @@
             value={value}
             field-type={fieldDetail.dataType}
             is-rich-text={fieldDetail.htmlFormatted}
+            style="flex-grow: 1; overflow: scroll; max-height: 50px;"
           ></c-formatted-tile-value>
         </template>
         <template if:true={isNameField}>
@@ -60,7 +61,7 @@
           value={modalValue}
           field-type={fieldDetail.dataType}
           is-rich-text={fieldDetail.htmlFormatted}
-          style="flex-grow: 1;"
+          style="flex-grow: 1; overflow: scroll; max-height: 50px;"
         ></c-formatted-tile-value>
 
         <lightning-button-icon

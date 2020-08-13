@@ -4,6 +4,8 @@
     value={value}
     label={label}
     max-length={maxLength}
+    onfocus={setKeyOveride}
+    onblur={removeKeyOveride}
   >
   </lightning-textarea>
   <lightning-input-rich-text
@@ -12,6 +14,8 @@
     label={label}
     message-when-bad-input="Input is too long"
     valid={richTextValidity}
+    onfocus={setKeyOveride}
+    onblur={removeKeyOveride}
   >
   </lightning-input-rich-text>
 </template>
