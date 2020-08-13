@@ -34,14 +34,22 @@ export default class InputCell extends LightningElement {
     if (isSave) {
       let modalInput = this.template.querySelector("c-modal-input");
       if (modalInput) {
-        let value = modalInput.getValue();
-        this.modalValue = value;
-        this.changeInputValue({
-          detail: { value, isPicklist: true }
-        });
+        let isValid = true;
+        if (this.inputDetails.componentDetails.type === "textarea") {
+          isValid = modalInput.checkValidity();
+        }
+        if (isValid) {
+          let value = modalInput.getValue();
+          this.modalValue = value;
+          this.changeInputValue({
+            detail: { value, isPicklist: true }
+          });
+          this.modalIsOpen = false;
+        }
       }
+    } else {
+      this.modalIsOpen = false;
     }
-    this.modalIsOpen = false;
   }
 
   get isBlank() {
@@ -379,7 +387,8 @@ export default class InputCell extends LightningElement {
             label: fieldDetail.label,
             fieldApiName: fieldDetail.apiName,
             recordTypeId: this.recordTypeId,
-            objectApiName: this.objectApiName
+            objectApiName: this.objectApiName,
+            required: fieldDetail.required
           }
         };
       }
@@ -451,7 +460,9 @@ export default class InputCell extends LightningElement {
           supported: true,
           component: "modal",
           componentDetails: {
-            type: "textarea"
+            type: "textarea",
+            maxLength: fieldDetail.length,
+            required: fieldDetail.required
           }
         };
       }

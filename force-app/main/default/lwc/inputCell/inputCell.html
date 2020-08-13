@@ -14,6 +14,7 @@
             if:false={link}
             value={value}
             field-type={fieldDetail.dataType}
+            is-rich-text={fieldDetail.htmlFormatted}
           ></c-formatted-tile-value>
         </template>
         <template if:true={isNameField}>
@@ -51,11 +52,17 @@
       ></lightning-input>
       <button
         if:true={isModalInput}
-        class="slds-grid slds-grid_align-end slds-box slds-grid_vertical-align-center"
-        style="padding: 5px; width: 100%; background: none;"
+        class="slds-grid slds-box slds-grid_vertical-align-center"
+        style="padding: 5px; width: 100%; background: none; text-align: left;"
         onclick={launchModalEdit}
       >
-        <span>{modalValue}</span>
+        <c-formatted-tile-value
+          value={modalValue}
+          field-type={fieldDetail.dataType}
+          is-rich-text={fieldDetail.htmlFormatted}
+          style="flex-grow: 1;"
+        ></c-formatted-tile-value>
+
         <lightning-button-icon
           class="slds-m-left_small"
           variant="bare"
@@ -71,6 +78,9 @@
           onselection={changeInputValue}
         ></c-picklist-input>
       </div>
+      <!-- TODO: need to get block save working for required modal fields if no values
+        as well as if invalid text area or rich text
+      -->
       <c-slotted-modal
         if:true={modalIsOpen}
         modal-title={fieldDetail.label}
@@ -85,6 +95,9 @@
             object-api-name={objectApiName}
             record-type-id={recordTypeId}
             label={fieldDetail.label}
+            max-length={inputDetails.componentDetails.maxLength}
+            required={inputDetails.componentDetails.required}
+            is-rich-text={fieldDetail.htmlFormatted}
           ></c-modal-input>
         </div>
       </c-slotted-modal>

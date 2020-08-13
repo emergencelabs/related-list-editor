@@ -1,0 +1,11 @@
+<template>
+  <lightning-formatted-text
+    value={value}
+    linkify
+    if:false={isRichText}
+  ></lightning-formatted-text>
+  <lightning-formatted-rich-text
+    value={value}
+    if:true={isRichText}
+  ></lightning-formatted-rich-text>
+</template>

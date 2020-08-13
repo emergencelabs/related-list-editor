@@ -40,7 +40,8 @@ export default class Tile extends NavigationMixin(LightningElement) {
             value,
             link: referenceValue
               ? `/lightning/r/${referenceValue.Id}/view`
-              : null
+              : null,
+            htmlFormatted: c.fieldDetail.htmlFormatted
           };
         })
         .filter((f) => f.apiName !== this.nameField);

@@ -7,10 +7,12 @@ import formattedPhone from "./formattedPhone.html";
 import formattedTime from "./formattedTime.html";
 import formattedUrl from "./formattedUrl.html";
 import formattedBoolean from "./formattedBoolean.html";
+import formattedTextArea from "./formattedTextArea.html";
 
 export default class FormattedTileValue extends LightningElement {
   @api fieldType;
   @api value;
+  @api isRichText = false;
 
   details = {};
 
@@ -39,7 +41,9 @@ export default class FormattedTileValue extends LightningElement {
       case "Email": {
         return formattedEmail;
       }
-
+      case "TextArea": {
+        return formattedTextArea;
+      }
       case "Phone": {
         return formattedPhone;
       }
@@ -52,5 +56,8 @@ export default class FormattedTileValue extends LightningElement {
       default:
         return formattedTileValue;
     }
+  }
+  connectedCallback() {
+    this.details.isRichText = this.isRichText;
   }
 }

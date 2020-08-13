@@ -1,10 +1,23 @@
 <template>
+  <template if:true={loading}>
+    <div class="slds-spinner_container slds-align_absolute-center">
+      <div class="slds-is-relative">
+        <lightning-spinner
+          alternative-text="Loading Records"
+          size="small"
+          variant="brand"
+        ></lightning-spinner>
+      </div>
+    </div>
+  </template>
   <lightning-dual-listbox
+    if:false={loading}
     name={label}
     label={label}
     source-label="Available"
     selected-label="Selected"
     options={details.options}
     value={details.values}
+    required={required}
   ></lightning-dual-listbox>
 </template>

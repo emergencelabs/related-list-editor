@@ -1,0 +1,17 @@
+<template>
+  <lightning-textarea
+    if:false={isRichText}
+    value={value}
+    label={label}
+    max-length={maxLength}
+  >
+  </lightning-textarea>
+  <lightning-input-rich-text
+    if:true={isRichText}
+    value={value}
+    label={label}
+    message-when-bad-input="Input is too long"
+    valid={richTextValidity}
+  >
+  </lightning-input-rich-text>
+</template>
