@@ -69,7 +69,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
 
   addRowToResetFuncs(resetFunc) {
     let indexOfExisting = this.resetFuncs.findIndex(
-      (o) => o.rowId === resetFunc.rowId
+      (o) => o.rowId === resetFunc.rowId && o.field === resetFunc.field
     );
     if (indexOfExisting >= 0) {
       this.resetFuncs[indexOfExisting] = resetFunc;
@@ -274,7 +274,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
         fieldName: fieldApiName,
         fieldDetail,
         lookupId,
-        sortable: fieldDetail.sortable
+        sortable: fieldDetail.sortable,
+        editable: true
       };
     });
     if (this.isTableLayout) {

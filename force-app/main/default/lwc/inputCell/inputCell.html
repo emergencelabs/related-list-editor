@@ -49,18 +49,19 @@
         autocomplete="off"
         style="min-height: calc(var(--lwc-heightInput, 1.875rem) + (1px * 2));"
       ></lightning-input>
-      <div
+      <button
         if:true={isModalInput}
         class="slds-grid slds-grid_align-end slds-box slds-grid_vertical-align-center"
-        style="padding: 5px;"
+        style="padding: 5px; width: 100%; background: none;"
+        onclick={launchModalEdit}
       >
-        <span>{value}</span>
+        <span>{modalValue}</span>
         <lightning-button-icon
           class="slds-m-left_small"
           variant="bare"
           icon-name="utility:new_window"
         ></lightning-button-icon>
-      </div>
+      </button>
       <div if:true={isPicklistInput}>
         <c-picklist-input
           value={value}
@@ -70,14 +71,24 @@
           onselection={changeInputValue}
         ></c-picklist-input>
       </div>
-      <!-- <c-modal-input ></c-modal-input>
-      <c-picklist-input
-        if:true={isPicklistInput}
-        value={value}
-        field-api-name={inputDetails.componentDetails.fieldApiName}
-        record-type-id={inputDetails.componentDetails.recordTypeId}
-        object-api-name={objectApiName}
-      ></c-picklist-input> -->
+      <c-slotted-modal
+        if:true={modalIsOpen}
+        modal-title={fieldDetail.label}
+        onclose={closeModalEdit}
+        size="small"
+        save-button-label="Done"
+      >
+        <div class="slds-grid slds-grid_align-center slds-m-around_medium">
+          <c-modal-input
+            type={inputDetails.componentDetails.type}
+            value={modalValue}
+            field-api-name={fieldDetail.apiName}
+            object-api-name={objectApiName}
+            record-type-id={recordTypeId}
+            label={fieldDetail.label}
+          ></c-modal-input>
+        </div>
+      </c-slotted-modal>
     </template>
   </div>
 </template>

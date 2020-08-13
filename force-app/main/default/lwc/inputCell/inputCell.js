@@ -23,12 +23,36 @@ export default class InputCell extends LightningElement {
   @track originalValue;
   @track inputDetails;
 
+  // TODO: need to block modal save if the value is empty but the field is required?
+  // worst case it can be solved by server side
+  @track modalValue;
+  @track modalIsOpen = false;
+  launchModalEdit() {
+    this.modalIsOpen = true;
+  }
+  closeModalEdit({ detail: { isSave } }) {
+    if (isSave) {
+      let modalInput = this.template.querySelector("c-modal-input");
+      if (modalInput) {
+        let value = modalInput.getValue();
+        this.modalValue = value;
+        this.changeInputValue({
+          detail: { value, isPicklist: true }
+        });
+      }
+    }
+    this.modalIsOpen = false;
+  }
+
   get isBlank() {
     return this.value === undefined;
   }
 
   // 3 = NotSupported, 2 = Modal, 1 = Field,  0 = editable
   get disableInputReason() {
+    if (this.inputDetails && !this.inputDetails.supported) {
+      return 2;
+    }
     if (this.fieldDetail.updateable) {
       //check type details for if is not supported or is modal edit
       return 0;
@@ -78,6 +102,12 @@ export default class InputCell extends LightningElement {
   }
   get isPicklistInput() {
     return this.inputDetails && this.inputDetails.component === "combobox";
+  }
+  // TODO: how will this work if its the M/D or lookup that has created this relationship?
+  // when a value changes I don't re-collect the records
+  // potentially can make that field locked
+  get isLookupInput() {
+    return this.inputDetails && this.inputDetails.component === "reference";
   }
 
   // TODO: what other input types will require the use of detail?
@@ -153,7 +183,8 @@ export default class InputCell extends LightningElement {
   resetInputValue = (stylingOnly = false, newOriginalValue) => {
     let componentToSelector = {
       input: "lightning-input",
-      combobox: "c-picklist-input"
+      combobox: "c-picklist-input",
+      modal: "c-modal-input"
     };
     let input = this.template.querySelector(
       componentToSelector[this.inputDetails.component]
@@ -162,8 +193,16 @@ export default class InputCell extends LightningElement {
       if (input) {
         if (this.inputDetails.component === "combobox") {
           input.reset();
-        } else if (this.inputDetails.component === "input")
-          input.value = this.originalValue;
+        } else if (this.inputDetails.component === "input") {
+          if (this.fieldDetail.dataType === "Boolean") {
+            input.checked = this.originalValue;
+          } else {
+            input.value = this.originalValue;
+            input.reportValidity();
+          }
+        }
+      } else if (this.inputDetails.component === "modal") {
+        this.modalValue = this.originalValue;
       }
     }
     if (newOriginalValue) {
@@ -171,14 +210,20 @@ export default class InputCell extends LightningElement {
       if (this.inputDetails.component === "combobox") {
         input.updateOriginalValue(newOriginalValue);
       }
+      if (this.inputDetails.component === "modal") {
+        this.modalValue = newOriginalValue;
+      }
     }
     this.containerClasses = "slds-cell-edit";
   };
 
   connectedCallback() {
+    // window.console.log(JSON.stringify(this.fieldDetail, null, 2));
+
     this.originalValue = this.value;
-    this.editing = this.disableInputReason === 0 ? this.defaultEdit : false;
+    this.modalValue = this.value;
     this.inputDetails = this.fieldToInput(this.fieldDetail);
+    this.editing = this.disableInput ? false : this.defaultEdit;
     // if editing focus the first available input element
 
     this.addEventListener("mouseenter", this.mouseEnter);
@@ -194,13 +239,16 @@ export default class InputCell extends LightningElement {
   //need to add all the bad value/message props to these return objects
   // this needs to account for display values as well in likely the same manner as tile does
   fieldToInput(fieldDetail) {
+    if (fieldDetail.controllerName || fieldDetail.compoundComponentName) {
+      return {
+        supported: false
+      };
+    }
     switch (fieldDetail.dataType) {
       case "Address": {
-        // modal: lightning-input-address
+        // address is not supported as only its individual items can be added to the column set
         return {
-          supported: true,
-          component: "modal",
-          componentDetails: {}
+          supported: false
         };
       }
       case "Base64": {
@@ -223,8 +271,15 @@ export default class InputCell extends LightningElement {
         };
       }
       case "ComboBox": {
-        // custom picklist embed
-        return fieldDetail.dataType;
+        return {
+          supported: true,
+          component: "combobox",
+          componentDetails: {
+            value: this.value,
+            fieldApiName: fieldDetail.apiName,
+            recordTypeId: this.recordTypeId
+          }
+        };
       }
       case "ComplexValue": {
         // likely going to not be supported? like what is this?
@@ -303,10 +358,14 @@ export default class InputCell extends LightningElement {
       }
       case "Location": {
         // modal: lightning-input-location
+        // location is a compound field that requires both latitude, and longitude
+        // to be present in the column set and/or have a value to be saved
+        // as they're added independently to the columns this value will never show up
+        // so they're treated as Double fields
+        // we can discuss if they're worth allowing to edit and just having the error exist
+        // see 'Double' compoundComponentName restriction
         return {
-          supported: true,
-          component: "modal",
-          componentDetails: {}
+          supported: false
         };
       }
       case "MultiPicklist": {
@@ -314,7 +373,14 @@ export default class InputCell extends LightningElement {
         return {
           supported: true,
           component: "modal",
-          componentDetails: {}
+          componentDetails: {
+            type: "multipicklist",
+            value: this.value,
+            label: fieldDetail.label,
+            fieldApiName: fieldDetail.apiName,
+            recordTypeId: this.recordTypeId,
+            objectApiName: this.objectApiName
+          }
         };
       }
       case "Percent": {
@@ -357,7 +423,15 @@ export default class InputCell extends LightningElement {
       }
       case "Reference": {
         // there could be some complexities to handling changing these values for things like M/D
-        return fieldDetail.dataType;
+        return {
+          supported: true,
+          component: "reference",
+          componentDetails: {
+            value: this.value,
+            fieldApiName: fieldDetail.apiName
+            // TODO
+          }
+        };
       }
       case "String": {
         return {
@@ -376,7 +450,9 @@ export default class InputCell extends LightningElement {
         return {
           supported: true,
           component: "modal",
-          componentDetails: {}
+          componentDetails: {
+            type: "textarea"
+          }
         };
       }
       case "Time": {
