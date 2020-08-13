@@ -372,7 +372,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
           title = `${errorCount} records were unable to be updated`;
           variant = "error";
         } else {
-          title = `${errorCount} of ${commitAttemptCount} records successfully updated`;
+          title = `${
+            commitAttemptCount - errorCount
+          } of ${commitAttemptCount} records successfully updated`;
           variant = "warning";
         }
         message = `Details on the ${errorCount} unsaved records are available in the table`;
@@ -443,7 +445,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   resetColumnsEdit() {
     this.tableColumns = this.tableColumns.map((detail) => {
       let clone = { ...detail };
-      clone.typeAttributes.defaultEdit = this.modalIsOpen;
+      clone.typeAttributes.defaultEdit = this.modalIsOpen || this.isStandalone;
       return clone;
     });
   }
