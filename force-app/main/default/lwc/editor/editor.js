@@ -144,9 +144,11 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   get tableContainerHeight() {
-    return `height: ${
-      this.isStandalone ? "25" : "15"
-    }rem;border-top-left-radius: 0px; border-top-right-radius: 0px; border-top: none;`;
+    let height = `height: ${this.isStandalone ? "25" : "15"}rem`;
+    if (this.totalRecordsCount < this.layoutModeLimit) {
+      height = "height:100%;";
+    }
+    return `${height};border-top-left-radius: 0px; border-top-right-radius: 0px; border-top: none;`;
   }
 
   get requiredFields() {

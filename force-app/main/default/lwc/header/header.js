@@ -7,6 +7,7 @@ export default class Header extends NavigationMixin(LightningElement) {
   @api iconName;
   @api listLabel;
   @api childObjectApiName;
+  @api objectApiName;
   @api relationshipField;
   @api recordId;
   @api count = "0";
@@ -54,6 +55,22 @@ export default class Header extends NavigationMixin(LightningElement) {
 
   displayEditModal() {
     this.dispatchEvent(new CustomEvent("displaymodal"));
+  }
+
+  viewAll(event) {
+    event.preventDefault();
+    this[NavigationMixin.Navigate]({
+      type: "standard__component",
+      attributes: {
+        componentName: "rle__RelatedListEditor"
+      },
+      state: {
+        c__recordId: this.recordId,
+        c__childObject: this.childObjectApiName,
+        c__parentObject: this.objectApiName,
+        c__relationshipField: this.relationshipField
+      }
+    });
   }
 
   disconnectedCallback() {
