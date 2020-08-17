@@ -14,7 +14,7 @@
           <div class="slds-media__body">
             <div class="slds-page-header__name">
               <div class="slds-page-header__name-title">
-                <h2 class="slds-card__header-title">
+                <h2 class="slds-card__header-title" if:true={allowEditModal}>
                   <a
                     href="#"
                     onclick={viewAll}
@@ -29,6 +29,20 @@
                       >({count})</span
                     >
                   </a>
+                </h2>
+                <h2 class="slds-card__header-title" if:false={allowEditModal}>
+                  <span
+                    class="slds-card__header-link baseCard__header-title-container"
+                    ><span
+                      class="slds-truncate slds-m-right--xx-small"
+                      title={listName}
+                      >{listLabel}</span
+                    ><span
+                      class="slds-shrink-none slds-m-right--xx-small"
+                      title={count}
+                      >({count})</span
+                    >
+                  </span>
                 </h2>
               </div>
             </div>

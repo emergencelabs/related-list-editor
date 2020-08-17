@@ -1,5 +1,7 @@
 import { api } from "lwc";
+import { loadStyle } from "lightning/platformResourceLoader";
 import LightningDatatable from "lightning/datatable";
+import CellStyling from "@salesforce/resourceUrl/CellStyling";
 
 import input from "./input.html";
 
@@ -26,5 +28,12 @@ export default class Table extends LightningDatatable {
   // but the element also gets reset everytime anything like column width changes
   @api findElement() {
     return this.template.querySelector(".slds-scrollable_y");
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    loadStyle(this, CellStyling).then(() => {
+      window.console.log("STYLE LOADED");
+    });
   }
 }

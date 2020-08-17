@@ -50,6 +50,10 @@ export default class PicklistInput extends LightningElement {
     this.originalValue = value;
   }
 
+  @api getValue() {
+    return this.template.querySelector("lightning-combobox").value;
+  }
+
   connectedCallback() {
     this.originalValue = this.value;
   }

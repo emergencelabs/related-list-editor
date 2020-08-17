@@ -44,7 +44,7 @@
       <c-tile-list
         if:true={isTileLayout}
         icon-name={iconName}
-        records={records}
+        records={newRecords}
         object-api-name={objectApiName}
         child-object-label={childObjectLabel}
         child-object-api-name={childObjectApiName}
@@ -74,7 +74,7 @@
         <c-table
           if:false={modalIsOpen}
           columns={tableColumns}
-          data={records}
+          data={newRecords}
           enable-infinite-loading
           hide-checkbox-column
           key-field="Id"
@@ -156,7 +156,7 @@
       </div>
     </div>
     <c-slotted-modal
-      if:true={confirmLoseChanges}
+      if:true={confirmLose}
       modal-title="You have unsaved changes"
       onclose={confirmDiscard}
       save-button-label="Discard Changes"
@@ -169,10 +169,31 @@
         </p>
       </div></c-slotted-modal
     >
+    <c-slotted-modal
+      if:true={confirmLoseDelete}
+      modal-title={confirmDeleteModalTitle}
+      onclose={confirmDiscard}
+      save-button-label={confirmDeleteButtonLabel}
+      save-button-variant="destructive"
+      size="small"
+      custom-backdrop-style={backdropStyleString}
+    >
+      <div>
+        <p class="slds-align_absolute-center slds-m-bottom_small">
+          Are you sure you want to delete this {childObjectLabel}?
+        </p>
+        <p
+          class="slds-align_absolute-center slds-m-bottom_small"
+          if:true={hasUnsavedChanges}
+        >
+          You have unsaved changes that will be lost.
+        </p>
+      </div>
+    </c-slotted-modal>
   </c-slotted-modal>
   <template if:false={modalIsOpen}>
     <c-slotted-modal
-      if:true={confirmLoseChanges}
+      if:true={confirmLose}
       modal-title="You have unsaved changes"
       onclose={confirmDiscard}
       save-button-label="Discard Changes"
@@ -184,5 +205,25 @@
         </p>
       </div></c-slotted-modal
     >
+    <c-slotted-modal
+      if:true={confirmLoseDelete}
+      modal-title={confirmDeleteModalTitle}
+      onclose={confirmDiscard}
+      save-button-label={confirmDeleteButtonLabel}
+      save-button-variant="destructive"
+      size="small"
+    >
+      <div>
+        <p class="slds-align_absolute-center slds-m-bottom_small">
+          Are you sure you want to delete this {childObjectLabel}?
+        </p>
+        <p
+          class="slds-align_absolute-center slds-m-bottom_small"
+          if:true={hasUnsavedChanges}
+        >
+          You have unsaved changes that will be lost.
+        </p>
+      </div>
+    </c-slotted-modal>
   </template>
 </template>

@@ -520,6 +520,24 @@ export default class Editor extends NavigationMixin(LightningElement) {
   @track refreshingTable = false;
   @track confirmLoseChanges = false;
 
+  get confirmLose() {
+    return this.confirmLoseChanges && this.currentAction !== "delete";
+  }
+
+  get confirmLoseDelete() {
+    return this.confirmLoseChanges && this.currentAction === "delete";
+  }
+
+  get confirmDeleteModalTitle() {
+    return `Delete ${this.childObjectLabel}`;
+  }
+  get confirmDeleteButtonLabel() {
+    if (this.hasUnsavedChanges) {
+      return "Delete & Discard Changes";
+    }
+    return "Delete";
+  }
+
   currentAction = null;
   actionTypeToFunc = {
     view: {
@@ -531,9 +549,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
       args: []
     },
     delete: {
-      func: () => {
-        window.console.log("calling delete");
-      },
+      func: this.requestDelete,
       args: []
     },
     sort: { func: this.updateColumnSorting, args: [] }
@@ -567,6 +583,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
     this.actionTypeToFunc[value].args = [value, row.Id];
     if (needsConfirmation) {
       this.confirmLoseChanges = true;
+      if (value === "delete") {
+        this.actionTypeToFunc[value].args = [{ detail: { childObject: row } }];
+      }
     } else {
       let targetAction = this.actionTypeToFunc[this.currentAction];
       targetAction.func.apply(this, targetAction.args);

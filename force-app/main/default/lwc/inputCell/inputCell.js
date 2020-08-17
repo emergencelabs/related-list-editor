@@ -41,6 +41,7 @@ export default class InputCell extends LightningElement {
         if (isValid) {
           let value = modalInput.getValue();
           this.modalValue = value;
+          this.inlinedValue = value;
           this.changeInputValue({
             detail: { value, isPicklist: true }
           });
@@ -99,6 +100,12 @@ export default class InputCell extends LightningElement {
     return this.referenceValue
       ? `/lightning/r/${this.referenceValue.Id}/view`
       : null;
+  }
+
+  @track inlinedValue = null;
+  get innerValue() {
+    if (this.inlinedValue !== null) return this.inlinedValue;
+    return this.value;
   }
 
   get isBaseInput() {
@@ -187,16 +194,17 @@ export default class InputCell extends LightningElement {
     this.isHovering = false;
   };
 
-  // TODO: does this need to also find picklists, and if so, it needs to be exposed from container
+  componentToSelector = {
+    input: "lightning-input",
+    combobox: "c-picklist-input",
+    modal: "c-modal-input"
+  };
   resetInputValue = (stylingOnly = false, newOriginalValue) => {
-    let componentToSelector = {
-      input: "lightning-input",
-      combobox: "c-picklist-input",
-      modal: "c-modal-input"
-    };
+    this.editing = this.disableInput ? false : this.defaultEdit;
     let input = this.template.querySelector(
-      componentToSelector[this.inputDetails.component]
+      this.componentToSelector[this.inputDetails.component]
     );
+    this.inlinedValue = null;
     if (!stylingOnly) {
       if (input) {
         if (this.inputDetails.component === "combobox") {
@@ -215,7 +223,7 @@ export default class InputCell extends LightningElement {
     }
     if (newOriginalValue) {
       this.originalValue = newOriginalValue;
-      if (this.inputDetails.component === "combobox") {
+      if (this.inputDetails.component === "combobox" && input) {
         input.updateOriginalValue(newOriginalValue);
       }
       if (this.inputDetails.component === "modal") {
@@ -224,6 +232,47 @@ export default class InputCell extends LightningElement {
     }
     this.containerClasses = "slds-cell-edit";
   };
+
+  inlineEdit = () => {
+    if (!this.editing && !this.disableInput) {
+      this.editing = true;
+
+      let handler = () => {
+        let isValid = true;
+        let input = this.template.querySelector("lightning-input");
+        if (input) {
+          isValid = input.checkValidity();
+        }
+        if (this.editing && isValid) {
+          this.editing = false;
+          this.inlinedValue = this.getValueFromInput();
+        }
+      };
+      this.template.addEventListener("mousedown", (e) => {
+        if (this.editing) {
+          let inputEl = this.template.querySelector("lightning-input");
+          if (inputEl) {
+            inputEl.focus();
+          }
+          e.stopPropagation();
+        }
+      });
+      window.addEventListener("mousedown", handler);
+    }
+  };
+
+  getValueFromInput() {
+    let cmp = this.template.querySelector(
+      this.componentToSelector[this.inputDetails.component]
+    );
+    if (this.fieldDetail.dataType === "Boolean") {
+      return cmp.checked;
+    } else if (this.isPicklistInput) {
+      return cmp.getValue();
+    }
+
+    return cmp.value;
+  }
 
   connectedCallback() {
     // window.console.log(JSON.stringify(this.fieldDetail, null, 2));
@@ -238,10 +287,12 @@ export default class InputCell extends LightningElement {
     this.addEventListener("mouseleave", this.mouseLeave);
     // when the input element recieves focus set the keydown event listener
     // override, when it blurs remove the event listener
+    this.template.addEventListener("dblclick", this.inlineEdit);
   }
   disconnectedCallback() {
     this.removeEventListener("mouseenter", this.mouseEnter);
     this.removeEventListener("mouseleave", this.mouseLeave);
+    this.template.removeEventListener("dblclick", this.inlineEdit);
   }
 
   //need to add all the bad value/message props to these return objects
