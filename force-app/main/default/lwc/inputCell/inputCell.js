@@ -274,6 +274,15 @@ export default class InputCell extends LightningElement {
     return cmp.value;
   }
 
+  renderedCallback() {
+    if (this.editing && !this.defaultEdit) {
+      let inputEl = this.template.querySelector("lightning-input");
+      if (inputEl) {
+        inputEl.focus();
+      }
+    }
+  }
+
   connectedCallback() {
     // window.console.log(JSON.stringify(this.fieldDetail, null, 2));
 
