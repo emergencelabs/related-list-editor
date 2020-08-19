@@ -1,10 +1,11 @@
 public with sharing class RecordTypeService {
   @AuraEnabled
   public static String getRecordTypeId(String objectApiName, String recordId) {
+    String safeObjectApiName = String.escapeSingleQuotes(objectApiName);
     try {
       List<SObject> objList = Database.query(
         'SELECT RecordTypeId FROM ' +
-        objectApiName +
+        safeObjectApiName +
         ' WHERE Id = \'' +
         recordId +
         '\' LIMIT 1'
@@ -13,9 +14,9 @@ public with sharing class RecordTypeService {
       if (rtId != null) {
         return rtId;
       }
-      return getDefaultRecordTypeId(objectApiName);
+      return getDefaultRecordTypeId(safeObjectApiName);
     } catch (QueryException qe) {
-      return getDefaultRecordTypeId(objectApiName);
+      return getDefaultRecordTypeId(safeObjectApiName);
     } catch (Exception e) {
       System.debug(e.getCause());
       System.debug(e.getTypeName());
@@ -30,15 +31,16 @@ public with sharing class RecordTypeService {
     String objectApiName,
     List<Id> recordIds
   ) {
+    String safeObjectApiName = String.escapeSingleQuotes(objectApiName);
     // first get the default record type id as its needed no matter what
-    String defaultRecordTypeId = getDefaultRecordTypeId(objectApiName);
+    String defaultRecordTypeId = getDefaultRecordTypeId(safeObjectApiName);
     Map<String, String> recordTypeMaps = new Map<String, String>{
       'Default' => defaultRecordTypeId
     };
     try {
       List<SObject> objList = Database.query(
         'SELECT Id, RecordTypeId FROM ' +
-        objectApiName +
+        safeObjectApiName +
         ' WHERE Id IN :recordIds'
       );
       for (SObject obj : objList) {
