@@ -270,44 +270,54 @@ export default class Editor extends NavigationMixin(LightningElement) {
   ];
 
   populateTableColumns(targetList) {
-    let columns = targetList.columns.map((col) => {
-      let { fieldApiName, lookupId, label } = col;
-      let normalizedApiName = fieldApiName;
-      if (fieldApiName.includes(".")) {
-        normalizedApiName = lookupId.replace(".", "");
-      }
-      let fieldDetail = this.childFields[normalizedApiName];
-      let clone = { ...fieldDetail };
-      let isRef = !!fieldDetail.relationshipName;
-      delete clone.fieldName;
-      return {
-        label,
-        type: "input",
-        typeAttributes: {
-          type: "text",
-          fieldDetail: clone,
-          rowId: { fieldName: "Id" },
-          referenceValue: isRef
-            ? {
-                fieldName: fieldDetail.relationshipName
-              }
-            : null,
-          referenceIcon: isRef
-            ? this.referenceIconMap.find(
-                (icon) => Object.keys(icon)[0] === normalizedApiName
-              )[normalizedApiName]
-            : null,
-          objectApiName: this.childObjectApiName,
-          defaultEdit: this.isStandalone || this.modalIsOpen,
-          recordTypeId: { fieldName: "RecordTypeId" }
-        },
-        fieldName: normalizedApiName,
-        fieldDetail,
-        lookupId,
-        sortable: fieldDetail.sortable,
-        editable: true
-      };
-    });
+    // 1: Filter out all columns that the user does not have access to
+    // 2: Map the columns into what the datatable needs
+    let columns = targetList.columns
+      .filter(({ fieldApiName, lookupId }) => {
+        let normalizedApiName = fieldApiName;
+        if (fieldApiName.includes(".")) {
+          normalizedApiName = lookupId.replace(".", "");
+        }
+        return !!this.childFields[normalizedApiName];
+      })
+      .map((col) => {
+        let { fieldApiName, lookupId, label } = col;
+        let normalizedApiName = fieldApiName;
+        if (fieldApiName.includes(".")) {
+          normalizedApiName = lookupId.replace(".", "");
+        }
+        let fieldDetail = this.childFields[normalizedApiName];
+        let clone = { ...fieldDetail };
+        let isRef = !!fieldDetail.relationshipName;
+        delete clone.fieldName;
+        return {
+          label,
+          type: "input",
+          typeAttributes: {
+            type: "text",
+            fieldDetail: clone,
+            rowId: { fieldName: "Id" },
+            referenceValue: isRef
+              ? {
+                  fieldName: fieldDetail.relationshipName
+                }
+              : null,
+            referenceIcon: isRef
+              ? this.referenceIconMap.find(
+                  (icon) => Object.keys(icon)[0] === normalizedApiName
+                )[normalizedApiName]
+              : null,
+            objectApiName: this.childObjectApiName,
+            defaultEdit: this.isStandalone || this.modalIsOpen,
+            recordTypeId: { fieldName: "RecordTypeId" }
+          },
+          fieldName: normalizedApiName,
+          fieldDetail,
+          lookupId,
+          sortable: fieldDetail.sortable,
+          editable: true
+        };
+      });
     if (this.isTableLayout) {
       columns = [
         ...columns,
@@ -337,7 +347,15 @@ export default class Editor extends NavigationMixin(LightningElement) {
       sortInfo.ascending ? "ASC  NULLS LAST" : "DESC  NULLS LAST"
     }`;
     let limitString = `LIMIT ${this.layoutModeLimit}`;
+    // filter out all fields that are not accessible to the current user
     let queryString = `SELECT Id, ${this.relatedListInfo.columns
+      .filter(({ fieldApiName, lookupId }) => {
+        let normalizedApiName = fieldApiName;
+        if (fieldApiName.includes(".")) {
+          normalizedApiName = lookupId.replace(".", "");
+        }
+        return !!this.childFields[normalizedApiName];
+      })
       .map((c) => c.fieldApiName)
       .join(", ")} FROM ${this.childObjectApiName} WHERE ${
       this.relationshipField
@@ -389,7 +407,26 @@ export default class Editor extends NavigationMixin(LightningElement) {
     if (isSave) {
       stylingOnly = true;
       this.refreshingTable = true;
-      let errors = await this.updateChildRecords(this.newRecords);
+      let errors;
+
+      try {
+        errors = await this.updateChildRecords(this.newRecords);
+      } catch (e) {
+        this.resetErrors();
+        this.cellStatusMap = {};
+        // TODO figure out name and update for lookup values
+        this.resetFuncs.forEach((o) => {
+          o.reset(false);
+        });
+        this.modalIsOpen = false;
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "Unable to update records",
+            message: e.body.message,
+            variant: "errir"
+          })
+        );
+      }
 
       let commitAttemptCount = Object.keys(this.cellStatusMap).length;
       let title = `${commitAttemptCount} records successfully updated`;
@@ -692,8 +729,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
       this.records = await this.getChildRecords(this.buildQueryString());
       this.newRecords = [...this.records];
     } catch (e) {
-      let pageError = e.body.pageErrors[0];
-      message = pageError ? pageError.message : "";
+      let pageError = e.body.pageErrors ? e.body.pageErrors[0] : null;
+      message = pageError ? pageError.message : e.body.message;
       //window.console.error("deletion error:", e);
       title = `Something went wrong deleting ${childObject.Name}`;
       variant = "error";

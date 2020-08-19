@@ -59,6 +59,7 @@ export default class InputCell extends LightningElement {
   }
 
   // 3 = NotSupported, 2 = Modal, 1 = Field,  0 = editable
+  // FLS check for if the field can be updated by the current user
   get disableInputReason() {
     if (this.inputDetails && !this.inputDetails.supported) {
       return 2;

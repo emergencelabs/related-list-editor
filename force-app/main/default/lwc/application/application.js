@@ -27,8 +27,13 @@ export default class Application extends LightningElement {
   @wire(getObjectInfo, { objectApiName: "$childObjectName" })
   childObjectInfo;
 
+  // TODO: this will be false if the user has no access to the child object
   get canRenderEditor() {
     return this.relatedListInfo && this.childObjectInfo.data;
+  }
+
+  get objectInaccessible() {
+    return !!this.childObjectInfo.error;
   }
 
   get layoutMode() {
