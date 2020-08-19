@@ -11,6 +11,7 @@ export default class InputCell extends LightningElement {
   @api objectApiName;
   @api recordTypeId;
   @api defaultEdit = false;
+  @api referenceIcon;
 
   @track editing = false;
   @track isHovering = false;
@@ -78,6 +79,14 @@ export default class InputCell extends LightningElement {
     return this.disableInputReason >= 1 ? "utility:lock" : "utility:edit";
   }
 
+  @track latestReferenceValue;
+  get currentReferenceValue() {
+    if (this.latestReferenceValue) {
+      return this.latestReferenceValue;
+    }
+    return this.referenceValue;
+  }
+
   get isReference() {
     return !!this.fieldDetail.relationshipName;
   }
@@ -97,8 +106,8 @@ export default class InputCell extends LightningElement {
   }
 
   get link() {
-    return this.referenceValue
-      ? `/lightning/r/${this.referenceValue.Id}/view`
+    return this.currentReferenceValue
+      ? `/lightning/r/${this.currentReferenceValue.Id}/view`
       : null;
   }
 
@@ -125,6 +134,27 @@ export default class InputCell extends LightningElement {
     return this.inputDetails && this.inputDetails.component === "reference";
   }
 
+  get lookupObjectApiName() {
+    if (this.fieldDetail.referenceToInfos) {
+      return this.fieldDetail.referenceToInfos[0].apiName;
+    }
+    return null;
+  }
+
+  // TODO: how to re-build this for reset, etc
+  originalLookupValue = null;
+  get lookupValue() {
+    if (this.currentReferenceValue) {
+      return {
+        id: this.currentReferenceValue.Id,
+        sObjectType: this.lookupObjectApiName,
+        title: this.currentReferenceValue.Name,
+        icon: this.referenceIcon
+      };
+    }
+    return null;
+  }
+
   // TODO: what other input types will require the use of detail?
   // and other considerations
   changeInputValue(event) {
@@ -133,6 +163,8 @@ export default class InputCell extends LightningElement {
     if (detail) {
       if (this.fieldDetail.dataType === "Boolean") {
         value = detail.checked;
+      } else if (detail.refName) {
+        value = { Id: detail.value, Name: detail.refName };
       } else {
         value = detail.value;
       }
@@ -153,6 +185,7 @@ export default class InputCell extends LightningElement {
       detail: {
         rowId: this.rowId,
         field: this.fieldDetail.apiName,
+        isReference: this.isLookupInput,
         value,
         isChanged: true,
         isInvalid:
@@ -160,12 +193,13 @@ export default class InputCell extends LightningElement {
         reset: this.resetInputValue
       }
     };
-
     if (value != this.value && !(this.isBlank && value === "")) {
       this.containerClasses = this.containerClasses + " slds-is-edited";
       this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
     } else {
-      this.containerClasses = "slds-cell-edit";
+      this.containerClasses = `slds-cell-edit ${
+        this.isRequired ? "slds-grid" : ""
+      }`;
       eventDetail.detail.isChanged = false;
       this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
     }
@@ -197,7 +231,8 @@ export default class InputCell extends LightningElement {
   componentToSelector = {
     input: "lightning-input",
     combobox: "c-picklist-input",
-    modal: "c-modal-input"
+    modal: "c-modal-input",
+    reference: "c-lookup-input"
   };
   resetInputValue = (stylingOnly = false, newOriginalValue) => {
     this.editing = this.disableInput ? false : this.defaultEdit;
@@ -205,6 +240,7 @@ export default class InputCell extends LightningElement {
       this.componentToSelector[this.inputDetails.component]
     );
     this.inlinedValue = null;
+
     if (!stylingOnly) {
       if (input) {
         if (this.inputDetails.component === "combobox") {
@@ -216,6 +252,8 @@ export default class InputCell extends LightningElement {
             input.value = this.originalValue;
             input.reportValidity();
           }
+        } else if (this.inputDetails.component === "reference") {
+          input.reset();
         }
       } else if (this.inputDetails.component === "modal") {
         this.modalValue = this.originalValue;
@@ -223,10 +261,16 @@ export default class InputCell extends LightningElement {
     }
     if (newOriginalValue) {
       this.originalValue = newOriginalValue;
-      if (this.inputDetails.component === "combobox" && input) {
-        input.updateOriginalValue(newOriginalValue);
+      if (this.latestReferenceValue) {
+        this.latestReferenceValue = newOriginalValue;
       }
-      if (this.inputDetails.component === "modal") {
+      if (
+        (this.inputDetails.component === "combobox" ||
+          this.inputDetails.component === "reference") &&
+        input
+      ) {
+        input.updateOriginalValue(newOriginalValue);
+      } else if (this.inputDetails.component === "modal") {
         this.modalValue = newOriginalValue;
       }
     }
@@ -245,7 +289,14 @@ export default class InputCell extends LightningElement {
         }
         if (this.editing && isValid) {
           this.editing = false;
-          this.inlinedValue = this.getValueFromInput();
+          let value = this.getValueFromInput();
+          if (this.isLookupInput) {
+            this.inlinedValue = value.title;
+            this.latestReferenceValue = { Id: value.id, Name: value.title };
+            window.console.log(JSON.stringify(this.latestReferenceValue));
+          } else {
+            this.inlinedValue = value;
+          }
         }
       };
       this.template.addEventListener("mousedown", (e) => {
@@ -267,7 +318,7 @@ export default class InputCell extends LightningElement {
     );
     if (this.fieldDetail.dataType === "Boolean") {
       return cmp.checked;
-    } else if (this.isPicklistInput) {
+    } else if (this.isPicklistInput || this.isLookupInput) {
       return cmp.getValue();
     }
 
@@ -288,6 +339,14 @@ export default class InputCell extends LightningElement {
 
     this.originalValue = this.value;
     this.modalValue = this.value;
+    this.originalLookupValue = this.currentReferenceValue
+      ? {
+          id: this.currentReferenceValue.Id,
+          sObjectType: this.lookupObjectApiName,
+          title: this.currentReferenceValue.Name,
+          icon: this.referenceIcon
+        }
+      : null;
     this.inputDetails = this.fieldToInput(this.fieldDetail);
     this.editing = this.disableInput ? false : this.defaultEdit;
     // if editing focus the first available input element

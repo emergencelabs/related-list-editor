@@ -18,7 +18,8 @@ export default class Table extends LightningDatatable {
         "referenceValue",
         "objectApiName",
         "recordTypeId",
-        "defaultEdit"
+        "defaultEdit",
+        "referenceIcon"
       ]
     }
   };
@@ -32,8 +33,7 @@ export default class Table extends LightningDatatable {
 
   connectedCallback() {
     super.connectedCallback();
-    loadStyle(this, CellStyling).then(() => {
-      window.console.log("STYLE LOADED");
-    });
+    // a promise but nothing to do once resolved
+    loadStyle(this, CellStyling);
   }
 }

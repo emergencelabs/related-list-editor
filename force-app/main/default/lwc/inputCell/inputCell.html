@@ -9,7 +9,7 @@
         "
       >
         <template if:false={isNameField}>
-          <a if:true={link} href={link}>{referenceValue.Name}</a>
+          <a if:true={link} href={link}>{currentReferenceValue.Name}</a>
           <c-formatted-tile-value
             if:false={link}
             value={innerValue}
@@ -80,7 +80,17 @@
           onselection={changeInputValue}
         ></c-picklist-input>
       </div>
-      <!-- TODO: need to get block save working for required modal fields if no values
+      <div if:true={isLookupInput}>
+        <c-lookup-input
+          initial-value={lookupValue}
+          icon-name={referenceIcon}
+          object-api-name={lookupObjectApiName}
+          onselection={changeInputValue}
+        ></c-lookup-input>
+      </div>
+      <!--
+
+        TODO: need to get block save working for required modal fields if no values
         as well as if invalid text area or rich text
       -->
       <c-slotted-modal

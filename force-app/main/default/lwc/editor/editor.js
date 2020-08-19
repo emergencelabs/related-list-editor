@@ -83,9 +83,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   newDraftValue({
-    detail: { rowId, field, value, isChanged, isInvalid, reset }
+    detail: { rowId, field, value, isReference, isChanged, isInvalid, reset }
   }) {
-    this.addRowToResetFuncs({ rowId, field, reset });
+    this.addRowToResetFuncs({ rowId, field, reset, isReference });
     let cell = this.cellStatusMap[rowId];
     if (cell) {
       cell[field] = { isChanged, isInvalid };
@@ -99,7 +99,14 @@ export default class Editor extends NavigationMixin(LightningElement) {
           ? { ...this.newRecords[targetRecordIndex] }
           : null;
       if (targetRecord) {
-        targetRecord[field] = value;
+        if (isReference) {
+          targetRecord[field] = value ? value.Id : "";
+          targetRecord[this.childFields[field].relationshipName] = value
+            ? value
+            : null;
+        } else {
+          targetRecord[field] = value;
+        }
         this.newRecords[targetRecordIndex] = targetRecord;
       }
     }
@@ -121,7 +128,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
     if (parentModal) {
       style = parentModal.getDimensions();
     }
-    window.console.log({ style });
     return style;
   }
 
@@ -226,10 +232,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return null;
   }
 
-  async fetchIcon() {
+  async fetchIcon(objectName) {
     try {
       let iconList = await getIconURL({
-        objectName: this.childObjectApiName
+        objectName
       });
       if (iconList.length) {
         let { Url: url } = iconList[0].Icons[0];
@@ -272,6 +278,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
       }
       let fieldDetail = this.childFields[normalizedApiName];
       let clone = { ...fieldDetail };
+      let isRef = !!fieldDetail.relationshipName;
       delete clone.fieldName;
       return {
         label,
@@ -280,16 +287,21 @@ export default class Editor extends NavigationMixin(LightningElement) {
           type: "text",
           fieldDetail: clone,
           rowId: { fieldName: "Id" },
-          referenceValue: fieldDetail.relationshipName
+          referenceValue: isRef
             ? {
                 fieldName: fieldDetail.relationshipName
               }
+            : null,
+          referenceIcon: isRef
+            ? this.referenceIconMap.find(
+                (icon) => Object.keys(icon)[0] === normalizedApiName
+              )[normalizedApiName]
             : null,
           objectApiName: this.childObjectApiName,
           defaultEdit: this.isStandalone || this.modalIsOpen,
           recordTypeId: { fieldName: "RecordTypeId" }
         },
-        fieldName: fieldApiName,
+        fieldName: normalizedApiName,
         fieldDetail,
         lookupId,
         sortable: fieldDetail.sortable,
@@ -413,22 +425,37 @@ export default class Editor extends NavigationMixin(LightningElement) {
           .map((id) => {
             return this.cellStatusMap[id];
           });
+        // TODO figure out name
         this.resetFuncs.forEach((o) => {
           if (!errors[o.rowId]) {
-            o.reset(
-              stylingOnly,
-              this.newRecords.find((r) => r.Id === o.rowId)[o.field]
-            );
+            let targetObj = this.newRecords.find((r) => r.Id === o.rowId);
+            let newValue = o.isReference
+              ? {
+                  Id: targetObj[o.field],
+                  Name: targetObj[this.childFields[o.field].relationshipName]
+                    ? targetObj[this.childFields[o.field].relationshipName].Name
+                    : ""
+                }
+              : targetObj[o.field];
+            o.reset(stylingOnly, newValue);
           }
         });
       } else {
         this.resetErrors();
         this.cellStatusMap = {};
+        // TODO figure out name and update for lookup values
         this.resetFuncs.forEach((o) => {
-          o.reset(
-            stylingOnly,
-            this.newRecords.find((r) => r.Id === o.rowId)[o.field]
-          );
+          let targetObj = this.newRecords.find((r) => r.Id === o.rowId);
+          let newValue = o.isReference
+            ? {
+                Id: targetObj[o.field],
+                Name: targetObj[this.childFields[o.field].relationshipName]
+                  ? targetObj[this.childFields[o.field].relationshipName].Name
+                  : ""
+              }
+            : targetObj[o.field];
+
+          o.reset(stylingOnly, newValue);
         });
         this.modalIsOpen = false;
       }
@@ -682,13 +709,36 @@ export default class Editor extends NavigationMixin(LightningElement) {
     );
   }
 
+  referenceIconMap = {};
   async connectedCallback() {
-    this.tableColumns = this.populateTableColumns(this.relatedListInfo);
-    let [count, records, iconName] = await Promise.all([
+    let iconPromises = this.relatedListInfo.columns
+      .map(({ fieldApiName, lookupId }) => {
+        let normalizedApiName = fieldApiName.includes(".")
+          ? lookupId.replace(".", "")
+          : fieldApiName;
+
+        let {
+          relationshipName,
+          referenceToInfos: [ref]
+        } = this.childFields[normalizedApiName];
+        if (relationshipName) {
+          return this.fetchIcon(ref.apiName).then((iconName) => {
+            return { [normalizedApiName]: iconName };
+          });
+        }
+        return null;
+      })
+      .filter((p) => !!p);
+
+    let [count, records, iconName, ...referenceIcons] = await Promise.all([
       this.getRecordCount(this.buildCountQueryString()),
       this.getChildRecords(this.buildQueryString()),
-      this.fetchIcon()
+      this.fetchIcon(this.childObjectApiName),
+      ...iconPromises
     ]);
+    this.referenceIconMap = referenceIcons;
+
+    this.tableColumns = this.populateTableColumns(this.relatedListInfo);
     this.totalRecordsCount = count;
     this.iconName = iconName;
     this.records = records;
@@ -697,6 +747,5 @@ export default class Editor extends NavigationMixin(LightningElement) {
       this.canRequestMore = false;
     }
     this.loading = false;
-    window.console.log(JSON.parse(JSON.stringify(this.records)));
   }
 }
