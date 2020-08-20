@@ -9,7 +9,7 @@ export default class ErrorBoundary extends LightningElement {
   @api isStandalone = false;
 
   errorHandler(event) {
-    window.console.error(JSON.stringify(event.data));
+    window.console.error(JSON.stringify(event.detail));
   }
 
   error;

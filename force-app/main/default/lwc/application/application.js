@@ -101,10 +101,14 @@ export default class Application extends LightningElement {
       return id;
     }
 
-    // this sucks as it wont be caught by any errorCallback's so will
-    // need to probably put some additional event bubbling in that
-    // the error boundary will catch?
-    throw new Error("Unable to find Record Type Id");
+    this.dispatchEvent(
+      new CustomEvent("rleerror", {
+        detail: {
+          message: "Unable to find a Record Type Id for this record."
+        }
+      })
+    );
+    return null;
   }
 
   async connectedCallback() {

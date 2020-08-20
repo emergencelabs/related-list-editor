@@ -237,7 +237,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   async fetchIcon(objectName) {
-    window.console.log(objectName);
     try {
       let iconList = await getIconURL({
         objectName
@@ -278,6 +277,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
   populateTableColumns(targetList) {
     // 1: Filter out all columns that the user does not have access to
     // 2: Map the columns into what the datatable needs
+    let containerWidth = this.template
+      .querySelector(".table-container")
+      .getBoundingClientRect().width;
+
     let columns = targetList.columns
       .filter(({ fieldApiName, lookupId }) => {
         let normalizedApiName = fieldApiName;
@@ -286,7 +289,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
         }
         return !!this.childFields[normalizedApiName];
       })
-      .map((col) => {
+      .map((col, _, available) => {
         let { fieldApiName, lookupId, label } = col;
         let normalizedApiName = fieldApiName;
         if (fieldApiName.includes(".")) {
@@ -317,6 +320,11 @@ export default class Editor extends NavigationMixin(LightningElement) {
             defaultEdit: this.isStandalone || this.modalIsOpen,
             recordTypeId: { fieldName: "RecordTypeId" }
           },
+          initialWidth: this.getColumnWidth(
+            containerWidth,
+            available.length,
+            fieldDetail.dataType
+          ),
           hideDefaultActions: this.isStandalone || this.modalIsOpen,
           fieldName: normalizedApiName,
           fieldDetail,
@@ -531,8 +539,20 @@ export default class Editor extends NavigationMixin(LightningElement) {
     };
   }
   resetColumnsEdit() {
-    this.tableColumns = this.tableColumns.map((detail) => {
+    // let el =
+    //   this.template.querySelector(".modal-table-container") ||
+    //   this.template.querySelector(".table-container");
+    // let containerWidth = el.getBoundingClientRect().width;
+    this.tableColumns = this.tableColumns.map((detail, _, available) => {
       let clone = { ...detail };
+      // if (clone.type === "input") {
+      //   clone.initialWidth = this.getColumnWidth(
+      //     containerWidth,
+      //     available.length,
+      //     clone.fieldDetail.dataType
+      //   );
+      // }
+      clone.hideDefaultActions = this.isStandalone || this.modalIsOpen;
       clone.typeAttributes.defaultEdit = this.modalIsOpen || this.isStandalone;
       return clone;
     });
@@ -803,5 +823,42 @@ export default class Editor extends NavigationMixin(LightningElement) {
       this.canRequestMore = false;
     }
     this.loading = false;
+  }
+
+  getColumnWidth(totalWidth, columnCount, dataType) {
+    switch (dataType) {
+      case "Address":
+      case "ComplexValue":
+      case "EncryptedString":
+      case "Location":
+      case "Base64": {
+        return 50;
+      }
+      case "Currency":
+      case "Date":
+      case "Int":
+      case "DateTime":
+      case "Double":
+      case "Percent":
+      case "Time":
+      case "Boolean": {
+        return Math.round((totalWidth / columnCount) * 0.75);
+      }
+      case "Email":
+      case "String":
+      case "MultiPicklist":
+      case "Phone":
+      case "Picklist":
+      case "Url":
+      case "ComboBox": {
+        return Math.round(totalWidth / columnCount);
+      }
+      case "TextArea":
+      case "Reference": {
+        return Math.round((totalWidth / columnCount) * 1.25);
+      }
+      default:
+        return Math.round(totalWidth / columnCount);
+    }
   }
 }

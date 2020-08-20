@@ -38,8 +38,8 @@ export default class Table extends LightningDatatable {
     // a promise but nothing to do once resolved
     loadStyle(this, CellStyling).then(() => {
       if (this.noScroll) {
-        window.console.log("no scroll");
-        //this.findElement().style.overflow = "unset";
+        // window.console.log("no scroll");
+        this.findElement().style.overflow = "unset";
       }
     });
   }
