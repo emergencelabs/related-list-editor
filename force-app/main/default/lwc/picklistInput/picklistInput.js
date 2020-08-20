@@ -27,6 +27,11 @@ export default class PicklistInput extends LightningElement {
     fieldApiName: "$fieldInfo"
   })
   picklistValues({ data, error }) {
+    window.console.log(
+      { data, error },
+      JSON.stringify(this.fieldApiName),
+      JSON.stringify(this.objectApiName)
+    );
     if (error) {
       window.console.error(error);
     } else if (data) {

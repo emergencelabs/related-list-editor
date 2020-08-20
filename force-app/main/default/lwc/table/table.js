@@ -24,6 +24,8 @@ export default class Table extends LightningDatatable {
     }
   };
 
+  @api noScroll = false;
+
   // this same element needs overflow: unset; nevermind fucking sucks
   // might need height: 100% set though
   // but the element also gets reset everytime anything like column width changes
@@ -34,6 +36,11 @@ export default class Table extends LightningDatatable {
   connectedCallback() {
     super.connectedCallback();
     // a promise but nothing to do once resolved
-    loadStyle(this, CellStyling);
+    loadStyle(this, CellStyling).then(() => {
+      if (this.noScroll) {
+        window.console.log("no scroll");
+        //this.findElement().style.overflow = "unset";
+      }
+    });
   }
 }

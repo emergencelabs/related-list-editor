@@ -113,6 +113,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
     this.cellStatusMap = { ...this.cellStatusMap };
   }
 
+  get noScroll() {
+    return this.totalRecordsCount <= this.layoutModeLimit;
+  }
+
   get totalRecordsCountLabel() {
     if (this.totalRecordsCount > this.layoutModeLimit) {
       return `${this.layoutModeLimit}+`;
@@ -233,6 +237,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   async fetchIcon(objectName) {
+    window.console.log(objectName);
     try {
       let iconList = await getIconURL({
         objectName
@@ -253,6 +258,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
       return "standard:default";
     } catch (e) {
       // TODO: look more into this possible error, for logging, etc
+      window.console.error(e);
       return "standard:default";
     }
   }

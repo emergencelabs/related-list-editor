@@ -199,9 +199,7 @@ export default class InputCell extends LightningElement {
         this.containerClasses + " slds-grid slds-is-edited";
       this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
     } else {
-      this.containerClasses = `slds-cell-edit ${
-        this.isRequired ? "slds-grid" : ""
-      }`;
+      this.containerClasses = `slds-cell-edit`;
       eventDetail.detail.isChanged = false;
       this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
     }
@@ -282,6 +280,9 @@ export default class InputCell extends LightningElement {
   inlineEdit = () => {
     if (!this.editing && !this.disableInput) {
       this.editing = true;
+      if(this.isModalInput){
+        this.launchModalEdit();
+      }
 
       let handler = () => {
         let isValid = true;
@@ -291,13 +292,15 @@ export default class InputCell extends LightningElement {
         }
         if (this.editing && isValid) {
           this.editing = false;
-          let value = this.getValueFromInput();
-          if (this.isLookupInput) {
-            this.inlinedValue = value.title;
-            this.latestReferenceValue = { Id: value.id, Name: value.title };
-            window.console.log(JSON.stringify(this.latestReferenceValue));
-          } else {
-            this.inlinedValue = value;
+          if (!this.isModalInput) {
+            let value = this.getValueFromInput();
+            if (this.isLookupInput) {
+              this.inlinedValue = value.title;
+              this.latestReferenceValue = { Id: value.id, Name: value.title };
+              window.console.log(JSON.stringify(this.latestReferenceValue));
+            } else {
+              this.inlinedValue = value;
+            }
           }
         }
       };
@@ -350,6 +353,10 @@ export default class InputCell extends LightningElement {
         }
       : null;
     this.inputDetails = this.fieldToInput(this.fieldDetail);
+    if (this.isPicklistInput) {
+      window.console.log(JSON.parse(JSON.stringify(this.fieldDetail)));
+    }
+
     this.editing = this.disableInput ? false : this.defaultEdit;
     // if editing focus the first available input element
 
@@ -444,13 +451,18 @@ export default class InputCell extends LightningElement {
         };
       }
       case "Double": {
+        let isCalculated = fieldDetail.calculated;
+        let wholeNumberStep = fieldDetail.scale === 0;
         return {
           supported: true,
           component: "input",
           componentDetails: {
             type: "number",
             formatter: "",
-            step: "0." + "0".repeat(fieldDetail.scale - 1) + "1",
+            step:
+              isCalculated || wholeNumberStep
+                ? undefined
+                : "0." + "0".repeat(fieldDetail.scale - 1) + "1",
             max:
               "1" + "0".repeat(fieldDetail.precision - (fieldDetail.scale + 1)),
             required: fieldDetail.required

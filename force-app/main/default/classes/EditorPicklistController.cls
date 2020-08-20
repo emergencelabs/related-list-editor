@@ -17,6 +17,7 @@ global class EditorPicklistController extends VisualEditor.DynamicPickList {
       if (
         childObjectDescribe.isAccessible() &&
         childObjectDescribe.isCreateable() &&
+        childObjectDescribe.fields.getMap().get('Name') != null &&
         childObjectDescribe.name != ''
       ) {
         relatedListOptions.add(
@@ -65,12 +66,13 @@ global class EditorPicklistController extends VisualEditor.DynamicPickList {
       String picklistOptionLabel = option.get('childPluralLabel');
       // ' - ' +
       // option.get('relationshipFieldLabel');
-
-      VisualEditor.DataRow child = new VisualEditor.DataRow(
-        picklistOptionLabel,
-        json
-      );
-      picklistOptions.addRow(child);
+      if (picklistOptionLabel != 'Opportunity Product') {
+        VisualEditor.DataRow child = new VisualEditor.DataRow(
+          picklistOptionLabel,
+          json
+        );
+        picklistOptions.addRow(child);
+      }
     }
     return picklistOptions;
   }
