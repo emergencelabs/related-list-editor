@@ -311,6 +311,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
             defaultEdit: this.isStandalone || this.modalIsOpen,
             recordTypeId: { fieldName: "RecordTypeId" }
           },
+          hideDefaultActions: this.isStandalone || this.modalIsOpen,
           fieldName: normalizedApiName,
           fieldDetail,
           lookupId,
@@ -339,9 +340,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
   // in state so that it can persist with whatever the latest sort is for infinite scroll
   // and also allow sort to change
   buildQueryString(offset = 0, customSortString = null) {
-    let sortInfo = this.customSortInfo
-      ? this.customSortInfo
-      : this.relatedListInfo.sort[0];
+    let sortInfo = this.columnSortInfo;
+
     let offsetString = `OFFSET ${offset}`;
     let sortString = `ORDER BY ${sortInfo.column} ${
       sortInfo.ascending ? "ASC  NULLS LAST" : "DESC  NULLS LAST"
@@ -423,7 +423,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
           new ShowToastEvent({
             title: "Unable to update records",
             message: e.body.message,
-            variant: "errir"
+            variant: "error"
           })
         );
       }
@@ -695,10 +695,25 @@ export default class Editor extends NavigationMixin(LightningElement) {
     });
   }
 
+  get columnSortInfo() {
+    if (this.customSortInfo) {
+      return this.customSortInfo;
+    }
+
+    let sortResponse = this.relatedListInfo.sort[0];
+    if (
+      sortResponse &&
+      this.childFields[sortResponse.column] &&
+      this.childFields[sortResponse.column].sortable
+    ) {
+      return sortResponse;
+    }
+
+    return { column: "Name", ascending: true };
+  }
+
   get columnSortDirection() {
-    let sortInfo = this.customSortInfo
-      ? this.customSortInfo
-      : this.relatedListInfo.sort[0];
+    let sortInfo = this.columnSortInfo;
     if (this.relatedListInfo) {
       return sortInfo.ascending ? "asc" : "desc";
     }
@@ -706,9 +721,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   get columnSortColumn() {
-    let sortInfo = this.customSortInfo
-      ? this.customSortInfo
-      : this.relatedListInfo.sort[0];
+    let sortInfo = this.columnSortInfo;
     if (this.relatedListInfo) {
       return sortInfo.column;
     }

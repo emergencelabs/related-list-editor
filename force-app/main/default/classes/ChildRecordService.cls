@@ -21,7 +21,7 @@ public with sharing class ChildRecordService {
   public static void deleteChildRecord(SObject childObject) {
     Schema.SObjectType type = childObject.getSObjectType();
     Boolean canDelete = type.getDescribe().isDeletable();
-    if (!canDelete) {
+    if (canDelete) {
       delete childObject;
     } else {
       throw new AuraHandledException(
@@ -29,7 +29,6 @@ public with sharing class ChildRecordService {
       );
     }
   }
-
 
   @AuraEnabled
   public static Map<Id, Map<String, String>> updateChildRecords(

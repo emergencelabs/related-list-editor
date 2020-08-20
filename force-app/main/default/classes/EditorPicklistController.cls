@@ -62,10 +62,9 @@ global class EditorPicklistController extends VisualEditor.DynamicPickList {
         '"' +
         '}';
 
-      String picklistOptionLabel =
-        option.get('childPluralLabel') +
-        ' - ' +
-        option.get('relationshipFieldLabel');
+      String picklistOptionLabel = option.get('childPluralLabel');
+      // ' - ' +
+      // option.get('relationshipFieldLabel');
 
       VisualEditor.DataRow child = new VisualEditor.DataRow(
         picklistOptionLabel,

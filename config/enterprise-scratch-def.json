@@ -1,0 +1,22 @@
+{
+  "orgName": "Emergence Labs",
+  "edition": "Enterprise",
+  "features": [],
+  "hasSampleData": "true",
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "securitySettings": {
+      "passwordPolicies": {
+        "enableSetPasswordInApi": true
+      },
+      "sessionSettings": {
+        "sessionTimeout": "TwelveHours"
+      }
+    },
+    "mobileSettings": {
+      "enableS1EncryptedStoragePref2": false
+    }
+  }
+}

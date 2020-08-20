@@ -195,7 +195,8 @@ export default class InputCell extends LightningElement {
       }
     };
     if (value != this.value && !(this.isBlank && value === "")) {
-      this.containerClasses = this.containerClasses + " slds-is-edited";
+      this.containerClasses =
+        this.containerClasses + " slds-grid slds-is-edited";
       this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
     } else {
       this.containerClasses = `slds-cell-edit ${

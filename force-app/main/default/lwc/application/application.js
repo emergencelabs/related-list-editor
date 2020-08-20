@@ -111,7 +111,8 @@ export default class Application extends LightningElement {
     this.recordTypeId = await this.findRecordTypeId();
     window.addEventListener("message", ({ origin, data: apiResponse }) => {
       if (
-        origin === `${this.urlBase}--rle.visualforce.com` &&
+        (origin === `${this.urlBase}--rle.visualforce.com` ||
+          origin.includes(`${this.urlBase}--rle`)) &&
         this.listSelection
       ) {
         this.relatedListInfo = apiResponse.relatedLists.find(
@@ -119,6 +120,7 @@ export default class Application extends LightningElement {
             rli.sobject === this.parsedListDetails.childObject &&
             rli.field === this.parsedListDetails.relationshipField
         );
+
         this.loading = false;
       }
     });

@@ -6,6 +6,13 @@
             "package": "RLETestPackage1",
             "versionName": "ver 0.1",
             "versionNumber": "0.1.0.NEXT"
+        },
+        {
+            "path": "force-app",
+            "package": "RLETest2",
+            "versionName": "ver 0.1",
+            "versionNumber": "0.1.0.NEXT",
+            "default": false
         }
     ],
     "namespace": "rle",
@@ -13,6 +20,13 @@
     "sourceApiVersion": "48.0",
     "packageAliases": {
         "RLETestPackage1": "0Hof4000000PB3uCAG",
-        "RLETestPackage1@0.1.0-1": "04tf4000004J2ChAAK"
+        "RLETestPackage1@0.1.0-1": "04tf4000004J2ChAAK",
+        "RLETest2": "0Hof4000000PB3zCAG",
+        "RLETest2@0.1.0-2": "04tf4000004J2D1AAK",
+        "RLETest2@0.1.0-3": "04tf4000004J2D6AAK",
+        "RLETest2@0.1.0-4": "04tf4000004J2DBAA0",
+        "RLETest2@0.1.0-5": "04tf4000004J2DGAA0",
+        "RLETest2@0.1.0-6": "04tf4000004J2DLAA0",
+        "RLETest2@0.1.0-7": "04tf4000004J2DQAA0"
     }
 }
