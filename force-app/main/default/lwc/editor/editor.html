@@ -23,6 +23,7 @@
     allow-edit-modal={allowEditModal}
     reason-for-new-modal={reasonForNewModal}
     ondisplaymodal={launchModal}
+    onrefreshrecords={refreshRecords}
   ></c-header>
   <div
     style="min-height: 100px;"
@@ -173,8 +174,8 @@
         <p class="slds-align_absolute-center slds-m-bottom_small">
           Are you sure you want to discard these changes?
         </p>
-      </div></c-slotted-modal
-    >
+      </div>
+    </c-slotted-modal>
     <c-slotted-modal
       if:true={confirmLoseDelete}
       modal-title={confirmDeleteModalTitle}
@@ -209,8 +210,8 @@
         <p class="slds-align_absolute-center slds-m-bottom_small">
           Are you sure you want to discard these changes?
         </p>
-      </div></c-slotted-modal
-    >
+      </div>
+    </c-slotted-modal>
     <c-slotted-modal
       if:true={confirmLoseDelete}
       modal-title={confirmDeleteModalTitle}

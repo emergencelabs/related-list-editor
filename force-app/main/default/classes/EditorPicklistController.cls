@@ -17,21 +17,33 @@ global class EditorPicklistController extends VisualEditor.DynamicPickList {
       if (
         childObjectDescribe.isAccessible() &&
         childObjectDescribe.isCreateable() &&
-        childObjectDescribe.fields.getMap().get('Name') != null &&
         childObjectDescribe.name != ''
       ) {
-        relatedListOptions.add(
-          new Map<String, String>{
-            'childPluralLabel' => childObjectDescribe.getLabelPlural(),
-            'relationshipFieldLabel' => childRelationship.getField()
-              .getDescribe()
-              .getLabel(),
-            'objectName' => childObjectDescribe.getName(),
-            'relationshipFieldName' => childRelationship.getField()
-              .getDescribe()
-              .getName()
+        for (
+          Schema.SObjectField fieldObj : childObjectDescribe.fields.getMap()
+            .values()
+        ) {
+          Schema.DescribeFieldResult field = fieldObj.getDescribe();
+
+          if (
+            field.isNameField() &&
+            field.getType() != Schema.DisplayType.REFERENCE
+          ) {
+            relatedListOptions.add(
+              new Map<String, String>{
+                'childPluralLabel' => childObjectDescribe.getLabelPlural(),
+                'relationshipFieldLabel' => childRelationship.getField()
+                  .getDescribe()
+                  .getLabel(),
+                'objectName' => childObjectDescribe.getName(),
+                'relationshipFieldName' => childRelationship.getField()
+                  .getDescribe()
+                  .getName()
+              }
+            );
+            break;
           }
-        );
+        }
       }
     }
   }

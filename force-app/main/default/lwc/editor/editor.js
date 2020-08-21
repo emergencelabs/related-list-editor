@@ -108,6 +108,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
           targetRecord[field] = value;
         }
         this.newRecords[targetRecordIndex] = targetRecord;
+        this.newRecords = [...this.newRecords];
       }
     }
     this.cellStatusMap = { ...this.cellStatusMap };
@@ -146,7 +147,16 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
   // TODO: this needs to sync up or just refresh the data table that is behind the modal
   async closeModal({ detail: { isSave } }) {
-    await this.commitRecordChange({ detail: { isSave } });
+    if (!isSave && this.hasUnsavedChanges) {
+      // pop confirmation modal
+      // on cancel do nothing but close that modal
+      // on confirm call the same func as below
+      this.currentAction = "close";
+      this.actionTypeToFunc.close.args = [{ detail: { isSave } }, true];
+      this.confirmLoseChanges = true;
+    } else {
+      await this.commitRecordChange({ detail: { isSave } }, true);
+    }
   }
 
   get isMobileNavigation() {
@@ -416,7 +426,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return updateChildRecords({ childRecords });
   }
 
-  async commitRecordChange({ detail: { isSave } }) {
+  async commitRecordChange({ detail: { isSave } }, modalTrigger = false) {
     var stylingOnly = false;
     if (isSave) {
       stylingOnly = true;
@@ -529,7 +539,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
       });
       this.modalIsOpen = false;
     }
-    this.resetColumnsEdit();
+    if (modalTrigger) {
+      this.resetColumnsEdit();
+    }
     return !this.hasErrors;
   }
 
@@ -598,6 +610,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   navigate(actionName, recordId) {
+    if (this.modalIsOpen) {
+      this.closeModal({ detail: { isSave: false } });
+    }
     this[NavigationMixin.Navigate]({
       type: "standard__recordPage",
       attributes: {
@@ -642,7 +657,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
       func: this.requestDelete,
       args: []
     },
-    sort: { func: this.updateColumnSorting, args: [] }
+    sort: { func: this.updateColumnSorting, args: [] },
+    close: { func: this.commitRecordChange, args: [] },
+    refresh: { func: this.requestRefreshedRecords, args: [] }
   };
 
   confirmDiscard({ detail: { isSave } }) {
@@ -783,6 +800,31 @@ export default class Editor extends NavigationMixin(LightningElement) {
         variant
       })
     );
+  }
+
+  refreshRecords() {
+    if (this.hasUnsavedChanges) {
+      this.currentAction = "refresh";
+      this.confirmLoseChanges = true;
+    } else {
+      this.requestRefreshedRecords();
+    }
+  }
+
+  requestRefreshedRecords() {
+    this.refreshingTable = true;
+    this.getChildRecords(this.buildQueryString()).then((records) => {
+      this.refreshingTable = false;
+      this.records = records;
+      this.newRecords = [...this.records];
+      window.console.log(JSON.parse(JSON.stringify(this.newRecords)));
+      this.canRequestMore = !!this.records.length;
+      let table = this.template.querySelector("c-table");
+      if (table) {
+        table.findElement().scrollTop = 0;
+        table.enableInfiniteLoading = this.canRequestMore;
+      }
+    });
   }
 
   referenceIconMap = {};

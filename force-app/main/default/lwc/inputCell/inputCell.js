@@ -143,6 +143,8 @@ export default class InputCell extends LightningElement {
   }
 
   // TODO: how to re-build this for reset, etc
+  // this needs to not hardcode name? what does the object look like
+  // if the lookup object has no explicity named 'Name' field
   originalLookupValue = null;
   get lookupValue() {
     if (this.currentReferenceValue) {
@@ -280,7 +282,7 @@ export default class InputCell extends LightningElement {
   inlineEdit = () => {
     if (!this.editing && !this.disableInput) {
       this.editing = true;
-      if(this.isModalInput){
+      if (this.isModalInput) {
         this.launchModalEdit();
       }
 
@@ -297,7 +299,6 @@ export default class InputCell extends LightningElement {
             if (this.isLookupInput) {
               this.inlinedValue = value.title;
               this.latestReferenceValue = { Id: value.id, Name: value.title };
-              window.console.log(JSON.stringify(this.latestReferenceValue));
             } else {
               this.inlinedValue = value;
             }
@@ -353,9 +354,6 @@ export default class InputCell extends LightningElement {
         }
       : null;
     this.inputDetails = this.fieldToInput(this.fieldDetail);
-    if (this.isPicklistInput) {
-      window.console.log(JSON.parse(JSON.stringify(this.fieldDetail)));
-    }
 
     this.editing = this.disableInput ? false : this.defaultEdit;
     // if editing focus the first available input element
