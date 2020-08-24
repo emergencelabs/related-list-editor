@@ -45,6 +45,14 @@ export default class Editor extends NavigationMixin(LightningElement) {
   @track errors = {
     rows: {}
   };
+
+  get sharedContainerHeightStyle() {
+    if (this.loading || this.records.length) {
+      return `min-height: 100px;`;
+    }
+    return ``;
+  }
+
   get hasErrors() {
     return Object.keys(this.errors.rows).length !== 0;
   }
