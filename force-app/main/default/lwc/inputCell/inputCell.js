@@ -112,14 +112,22 @@ export default class InputCell extends LightningElement {
       : null;
   }
 
-  navigateToRecord(event) {
+  navigateToLookup(event) {
     event.preventDefault();
+    this.navigateToRecord(null, this.currentReferenceValue.Id);
+  }
+
+  navigateToRecord(event, lookupId) {
+    let rowId = lookupId || this.rowId;
+    if (event) {
+      event.preventDefault();
+    }
     this.dispatchEvent(
       new CustomEvent("linknavigate", {
         composed: true,
         bubbles: true,
         cancelable: true,
-        detail: { rowId: this.rowId }
+        detail: { rowId }
       })
     );
   }
@@ -211,15 +219,29 @@ export default class InputCell extends LightningElement {
         reset: this.resetInputValue
       }
     };
-    if (value != this.value && !(this.isBlank && value === "")) {
-      this.setContainerClasses("slds-is-edited");
+    if (this.isReference) {
+      let hasOriginal = !!this.originalLookupValue;
+      let hasNew = !!value.Id;
 
-      this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
+      if (
+        (hasOriginal && !hasNew) ||
+        (!hasOriginal && hasNew) ||
+        (hasOriginal &&
+          (this.originalLookupValue.Id || this.originalLookupValue.id) !==
+            value.Id)
+      ) {
+        this.setContainerClasses("slds-is-edited");
+      } else {
+        this.setContainerClasses();
+        eventDetail.detail.isChanged = false;
+      }
+    } else if (value != this.value && !(this.isBlank && value === "")) {
+      this.setContainerClasses("slds-is-edited");
     } else {
       this.setContainerClasses();
       eventDetail.detail.isChanged = false;
-      this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
     }
+    this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
   }
 
   setContainerClasses(append) {
@@ -268,10 +290,18 @@ export default class InputCell extends LightningElement {
     if (!stylingOnly) {
       //
       if (this.inputDetails.component === "reference") {
-        this.latestReferenceValue = {
-          Id: this.originalLookupValue.id || this.originalLookupValue.Id,
-          Name: this.originalLookupValue.title || this.originalLookupValue.Name
-        };
+        if (this.originalLookupValue) {
+          this.latestReferenceValue = {
+            Id: this.originalLookupValue.id || this.originalLookupValue.Id,
+            Name:
+              this.originalLookupValue.title || this.originalLookupValue.Name
+          };
+        } else {
+          this.latestReferenceValue = {
+            Id: "",
+            Name: ""
+          };
+        }
       }
       //
       if (input) {
@@ -314,7 +344,9 @@ export default class InputCell extends LightningElement {
   inlineEdit = () => {
     if (!this.editing && !this.disableInput) {
       this.editing = true;
-      this.setContainerClasses();
+      this.setContainerClasses(
+        this.containerClasses.includes("slds-is-edited") ? "slds-is-edited" : ""
+      );
       if (this.isModalInput) {
         this.launchModalEdit();
       }
@@ -327,7 +359,7 @@ export default class InputCell extends LightningElement {
         }
         if (this.editing && isValid) {
           this.editing = false;
-          this.setContainerClasses();
+
           if (!this.isModalInput) {
             let value = this.getValueFromInput();
             if (this.isLookupInput) {

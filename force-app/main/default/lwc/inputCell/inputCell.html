@@ -9,7 +9,11 @@
         "
       >
         <template if:false={isNameField}>
-          <a if:true={link} href={link} style="overflow: hidden;"
+          <a
+            if:true={link}
+            href={link}
+            onclick={navigateToLookup}
+            style="overflow: hidden;"
             >{currentReferenceValue.Name}</a
           >
           <c-formatted-tile-value
@@ -21,7 +25,12 @@
           ></c-formatted-tile-value>
         </template>
         <template if:true={isNameField}>
-          <a href={nameLink} onclick={navigateToRecord}>{value}</a>
+          <a
+            href={nameLink}
+            onclick={navigateToRecord}
+            style="overflow: hidden;"
+            >{value}</a
+          >
         </template>
         <!-- <span>{value}</span> -->
         <lightning-button-icon

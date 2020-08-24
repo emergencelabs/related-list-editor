@@ -632,6 +632,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
     if (this.modalIsOpen) {
       this.closeModal({ detail: { isSave: false } });
     }
+    // TODO, need to reset all the records here as this doesn't refresh when you navigate
+
     this[NavigationMixin.Navigate]({
       type: "standard__recordPage",
       attributes: {
