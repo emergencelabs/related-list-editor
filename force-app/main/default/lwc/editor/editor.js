@@ -684,16 +684,19 @@ export default class Editor extends NavigationMixin(LightningElement) {
   };
 
   confirmDiscard({ detail: { isSave } }) {
-    this.confirmLoseChanges = false;
     if (isSave) {
+      this.newRecords = [...this.records];
       this.cellStatusMap = {};
       this.resetFuncs.forEach((o) => {
         o.reset();
       });
       let targetAction = this.actionTypeToFunc[this.currentAction];
-      targetAction.func.apply(this, targetAction.args);
-      targetAction.args = [];
+      if (targetAction) {
+        targetAction.func.apply(this, targetAction.args);
+        targetAction.args = [];
+      }
     }
+    this.confirmLoseChanges = false;
   }
 
   linkNavigate({ detail: { rowId } }) {

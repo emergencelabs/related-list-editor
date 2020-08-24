@@ -288,7 +288,6 @@ export default class InputCell extends LightningElement {
     );
     this.inlinedValue = null;
     if (!stylingOnly) {
-      //
       if (this.inputDetails.component === "reference") {
         if (this.originalLookupValue) {
           this.latestReferenceValue = {
@@ -303,7 +302,7 @@ export default class InputCell extends LightningElement {
           };
         }
       }
-      //
+
       if (input) {
         if (
           this.inputDetails.component === "combobox" ||
