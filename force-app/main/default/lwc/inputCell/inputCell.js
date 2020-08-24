@@ -147,7 +147,11 @@ export default class InputCell extends LightningElement {
   // if the lookup object has no explicity named 'Name' field
   originalLookupValue = null;
   get lookupValue() {
-    if (this.currentReferenceValue) {
+    window.console.log(JSON.stringify(this.currentReferenceValue, null, 2));
+    if (
+      this.currentReferenceValue &&
+      Object.keys(this.currentReferenceValue).length
+    ) {
       return {
         id: this.currentReferenceValue.Id,
         sObjectType: this.lookupObjectApiName,

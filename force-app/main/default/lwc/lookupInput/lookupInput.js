@@ -75,7 +75,10 @@ export default class LookupInput extends LightningElement {
   }
   resetValue = null;
   connectedCallback() {
-    this.currentValue = this.initialValue;
-    this.resetValue = this.initialValue;
+    let value =
+      this.initialValue && this.initialValue.id ? this.initialValue : null;
+    this.currentValue = value;
+
+    this.resetValue = value;
   }
 }
