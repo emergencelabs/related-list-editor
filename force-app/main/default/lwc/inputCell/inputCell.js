@@ -147,7 +147,6 @@ export default class InputCell extends LightningElement {
   // if the lookup object has no explicity named 'Name' field
   originalLookupValue = null;
   get lookupValue() {
-    window.console.log(JSON.stringify(this.currentReferenceValue, null, 2));
     if (
       this.currentReferenceValue &&
       Object.keys(this.currentReferenceValue).length
@@ -246,10 +245,20 @@ export default class InputCell extends LightningElement {
       this.componentToSelector[this.inputDetails.component]
     );
     this.inlinedValue = null;
-
     if (!stylingOnly) {
+      //
+      if (this.inputDetails.component === "reference") {
+        this.latestReferenceValue = {
+          Id: this.originalLookupValue.id || this.originalLookupValue.Id,
+          Name: this.originalLookupValue.title || this.originalLookupValue.Name
+        };
+      }
+      //
       if (input) {
-        if (this.inputDetails.component === "combobox") {
+        if (
+          this.inputDetails.component === "combobox" ||
+          this.inputDetails.component === "reference"
+        ) {
           input.reset();
         } else if (this.inputDetails.component === "input") {
           if (this.fieldDetail.dataType === "Boolean") {
@@ -258,8 +267,6 @@ export default class InputCell extends LightningElement {
             input.value = this.originalValue;
             input.reportValidity();
           }
-        } else if (this.inputDetails.component === "reference") {
-          input.reset();
         }
       } else if (this.inputDetails.component === "modal") {
         this.modalValue = this.originalValue;
@@ -269,6 +276,7 @@ export default class InputCell extends LightningElement {
       this.originalValue = newOriginalValue;
       if (this.latestReferenceValue) {
         this.latestReferenceValue = newOriginalValue;
+        this.originalLookupValue = newOriginalValue;
       }
       if (
         (this.inputDetails.component === "combobox" ||

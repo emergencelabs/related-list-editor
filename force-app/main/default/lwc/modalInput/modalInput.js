@@ -88,7 +88,7 @@ export default class ModalInput extends LightningElement {
       window.console.error(error);
     } else if (data) {
       let { values } = data;
-      window.console.log(values);
+
       this.details.options = values;
     }
     this.loading = false;

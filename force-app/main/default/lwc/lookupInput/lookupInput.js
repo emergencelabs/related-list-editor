@@ -14,7 +14,6 @@ export default class LookupInput extends LightningElement {
   }
 
   changeSelection({ detail: [newSelection] }) {
-    window.console.log(newSelection);
     // let id = newSelection;
     // if (id) {
     //   this.currentValue = {
@@ -39,7 +38,6 @@ export default class LookupInput extends LightningElement {
   }
 
   lookupSearch({ target, detail: { searchTerm } }) {
-    window.console.log(searchTerm);
     search({
       searchTerm,
       objectApiName: this.objectApiName,
@@ -66,12 +64,16 @@ export default class LookupInput extends LightningElement {
   }
 
   @api updateOriginalValue(value) {
-    this.resetValue = {
-      id: value.Id,
-      title: value.Name,
-      sObjectType: this.objectApiName,
-      icon: this.iconName
-    };
+    if (value && value.Id) {
+      this.resetValue = {
+        id: value.Id,
+        title: value.Name,
+        sObjectType: this.objectApiName,
+        icon: this.iconName
+      };
+    } else {
+      this.resetValue = null;
+    }
   }
   resetValue = null;
   connectedCallback() {

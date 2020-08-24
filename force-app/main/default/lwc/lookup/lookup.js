@@ -185,7 +185,7 @@ export default class Lookup extends LightningElement {
       }
       return sel;
     });
-    window.console.log(JSON.parse(JSON.stringify(this._curSelection)));
+
     let defaultResults = [...this._defaultSearchResults];
     defaultResults = defaultResults.filter(
       (result) => selectedIds.indexOf(result.id) === -1
