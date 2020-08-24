@@ -602,6 +602,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
       }
     } else {
       this.canRequestMore = false;
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "You can only view 2000 records in the Related List Editor",
+          variant: "error"
+        })
+      );
     }
     this.loading = false;
   }
@@ -614,17 +620,38 @@ export default class Editor extends NavigationMixin(LightningElement) {
       t.isLoading = true;
 
       this.currentOffset += this.layoutModeLimit;
-      this.getChildRecords(this.buildQueryString(this.currentOffset)).then(
-        (nextRecords) => {
-          t.isLoading = false;
-          // this checks same because it means we got as many as possible and
-          // its not possible to get more
-          this.canRequestMore = nextRecords.length === this.layoutModeLimit;
-          t.enableInfiniteLoading = this.canRequestMore;
-          this.records = [...this.records, ...nextRecords];
-          this.newRecords = [...this.records];
-        }
-      );
+      if (this.currentOffset <= 2000) {
+        this.getChildRecords(this.buildQueryString(this.currentOffset))
+          .then((nextRecords) => {
+            t.isLoading = false;
+
+            this.canRequestMore = nextRecords.length === this.layoutModeLimit;
+            t.enableInfiniteLoading = this.canRequestMore;
+            this.records = [...this.records, ...nextRecords];
+            this.newRecords = [...this.records];
+          })
+          .catch((e) => {
+            t.isLoading = false;
+            this.canRequestMore = false;
+            t.enableInfiniteLoading = false;
+            this.dispatchEvent(
+              new ShowToastEvent({
+                title: "Something went wrong loading more records",
+                variant: "error"
+              })
+            );
+          });
+      } else {
+        t.isLoading = false;
+        this.canRequestMore = false;
+        t.enableInfiniteLoading = false;
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "You can only view 2000 records in the Related List Editor",
+            variant: "error"
+          })
+        );
+      }
     }
   }
 

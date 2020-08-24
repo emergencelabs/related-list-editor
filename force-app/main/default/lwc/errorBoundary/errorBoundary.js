@@ -15,12 +15,17 @@ export default class ErrorBoundary extends LightningElement {
   error;
   stack;
   errorCallback(error, stack) {
-    window.console.error("caught???");
+    window.console.error(error);
     if (error) this.error = error;
     if (stack) this.stack = stack;
   }
 
   reload() {
     window.location.reload();
+  }
+
+  reloadComponent() {
+    this.error = null;
+    this.stack = null;
   }
 }
