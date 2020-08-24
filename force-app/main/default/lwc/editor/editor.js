@@ -168,7 +168,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   get allowEditModal() {
-    return !this.isStandalone && this.layoutMode > 1;
+    return (
+      !this.isStandalone &&
+      this.layoutMode > 1 &&
+      this.records &&
+      this.records.length
+    );
   }
 
   get isTileLayout() {
@@ -244,6 +249,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
       return this.relatedListInfo.field;
     }
     return null;
+  }
+
+  get canShowViewTable() {
+    return !this.modalIsOpen && this.records && this.records.length;
   }
 
   async fetchIcon(objectName) {
@@ -600,6 +609,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
       this.getChildRecords(this.buildQueryString(this.currentOffset)).then(
         (nextRecords) => {
           t.isLoading = false;
+          // this checks same because it means we got as many as possible and
+          // its not possible to get more
           this.canRequestMore = nextRecords.length === this.layoutModeLimit;
           t.enableInfiniteLoading = this.canRequestMore;
           this.records = [...this.records, ...nextRecords];
@@ -733,7 +744,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
       this.refreshingTable = false;
       this.records = records;
       this.newRecords = [...this.records];
-      this.canRequestMore = !!this.records.length;
+      this.canRequestMore = this.records.length === this.layoutModeLimit;
       t.enableInfiniteLoading = this.canRequestMore;
     });
   }
@@ -811,14 +822,20 @@ export default class Editor extends NavigationMixin(LightningElement) {
     }
   }
 
+  // TODO: is this can request more being handled properly? i dont think so, i think this and
+  // the initial setting of it cause one extra check to be completed
   requestRefreshedRecords() {
     this.refreshingTable = true;
-    this.getChildRecords(this.buildQueryString()).then((records) => {
+    Promise.all([
+      this.getRecordCount(this.buildCountQueryString()),
+      this.getChildRecords(this.buildQueryString())
+    ]).then(([count, records]) => {
+      this.totalRecordsCount = count;
       this.refreshingTable = false;
       this.records = records;
       this.newRecords = [...this.records];
-      window.console.log(JSON.parse(JSON.stringify(this.newRecords)));
-      this.canRequestMore = !!this.records.length;
+
+      this.canRequestMore = this.records.length === this.layoutModeLimit;
       let table = this.template.querySelector("c-table");
       if (table) {
         table.findElement().scrollTop = 0;
@@ -861,9 +878,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
     this.iconName = iconName;
     this.records = records;
     this.newRecords = [...this.records];
-    if (!this.records.length) {
-      this.canRequestMore = false;
-    }
+    this.canRequestMore = this.records.length === this.layoutModeLimit;
+
     this.loading = false;
   }
 

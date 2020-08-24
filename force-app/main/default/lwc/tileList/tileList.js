@@ -18,7 +18,10 @@ export default class TileList extends NavigationMixin(LightningElement) {
   offset = 0;
 
   get showViewMoreButton() {
-    return (this.isStandalone && this.canRequestMore) || !this.isStandalone;
+    return (
+      this.records.length &&
+      ((this.isStandalone && this.canRequestMore) || !this.isStandalone)
+    );
   }
 
   get ViewMoreButtonLabel() {

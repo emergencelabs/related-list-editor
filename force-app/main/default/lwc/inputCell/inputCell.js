@@ -200,14 +200,22 @@ export default class InputCell extends LightningElement {
       }
     };
     if (value != this.value && !(this.isBlank && value === "")) {
-      this.containerClasses =
-        this.containerClasses + " slds-grid slds-is-edited";
+      this.setContainerClasses("slds-is-edited");
+
       this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
     } else {
-      this.containerClasses = `slds-cell-edit`;
+      this.setContainerClasses();
       eventDetail.detail.isChanged = false;
       this.dispatchEvent(new CustomEvent("cellvaluechange", eventDetail));
     }
+  }
+
+  setContainerClasses(append) {
+    this.containerClasses = `slds-cell-edit ${
+      !this.isReference && !this.isPicklistInput ? "slds-truncate" : ""
+    } ${this.isRequired && this.editing ? "slds-grid" : ""} ${
+      append ? append : ""
+    }`;
   }
 
   // TODO: adjust this to make it so that you basically can never enter
@@ -288,12 +296,13 @@ export default class InputCell extends LightningElement {
         this.modalValue = newOriginalValue;
       }
     }
-    this.containerClasses = "slds-cell-edit";
+    this.setContainerClasses();
   };
 
   inlineEdit = () => {
     if (!this.editing && !this.disableInput) {
       this.editing = true;
+      this.setContainerClasses();
       if (this.isModalInput) {
         this.launchModalEdit();
       }
@@ -306,6 +315,7 @@ export default class InputCell extends LightningElement {
         }
         if (this.editing && isValid) {
           this.editing = false;
+          this.setContainerClasses();
           if (!this.isModalInput) {
             let value = this.getValueFromInput();
             if (this.isLookupInput) {
@@ -375,6 +385,7 @@ export default class InputCell extends LightningElement {
     // when the input element recieves focus set the keydown event listener
     // override, when it blurs remove the event listener
     this.template.addEventListener("dblclick", this.inlineEdit);
+    this.setContainerClasses();
   }
   disconnectedCallback() {
     this.removeEventListener("mouseenter", this.mouseEnter);

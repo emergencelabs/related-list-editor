@@ -73,7 +73,7 @@
           </div>
         </div>
         <c-table
-          if:false={modalIsOpen}
+          if:true={canShowViewTable}
           columns={tableColumns}
           data={newRecords}
           enable-infinite-loading

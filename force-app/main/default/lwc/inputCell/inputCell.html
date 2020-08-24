@@ -9,7 +9,9 @@
         "
       >
         <template if:false={isNameField}>
-          <a if:true={link} href={link}>{currentReferenceValue.Name}</a>
+          <a if:true={link} href={link} style="overflow: hidden;"
+            >{currentReferenceValue.Name}</a
+          >
           <c-formatted-tile-value
             if:false={link}
             value={innerValue}
