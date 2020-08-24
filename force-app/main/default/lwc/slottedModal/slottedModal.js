@@ -6,7 +6,6 @@ export default class SlottedModal extends LightningElement {
   @api saveButtonVariant = "brand";
   @api size = "large";
   @api blockSave = false;
-  @api customBackdropStyle = "";
 
   get modalSizingClasses() {
     return `slds-modal slds-fade-in-open slds-modal_${this.size}`;

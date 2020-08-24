@@ -133,17 +133,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return `${this.totalRecordsCount}`;
   }
 
-  get backdropStyleString() {
-    let parentModal = this.template.querySelector(
-      "c-slotted-modal.parent-modal"
-    );
-    let style = "";
-    if (parentModal) {
-      style = parentModal.getDimensions();
-    }
-    return style;
-  }
-
   // TODO: likely need to call the confirmation here on cancel
   // if has unsaved changes
   // this means that the confirmation modal needs to know what method to call after
