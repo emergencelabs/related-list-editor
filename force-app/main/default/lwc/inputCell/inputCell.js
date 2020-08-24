@@ -112,6 +112,18 @@ export default class InputCell extends LightningElement {
       : null;
   }
 
+  navigateToRecord(event) {
+    event.preventDefault();
+    this.dispatchEvent(
+      new CustomEvent("linknavigate", {
+        composed: true,
+        bubbles: true,
+        cancelable: true,
+        detail: { rowId: this.rowId }
+      })
+    );
+  }
+
   @track inlinedValue = null;
   get innerValue() {
     if (this.inlinedValue !== null) return this.inlinedValue;

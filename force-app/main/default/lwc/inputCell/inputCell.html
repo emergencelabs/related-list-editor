@@ -21,7 +21,7 @@
           ></c-formatted-tile-value>
         </template>
         <template if:true={isNameField}>
-          <a href={nameLink}>{value}</a>
+          <a href={nameLink} onclick={navigateToRecord}>{value}</a>
         </template>
         <!-- <span>{value}</span> -->
         <lightning-button-icon

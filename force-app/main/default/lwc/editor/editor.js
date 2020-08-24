@@ -694,6 +694,17 @@ export default class Editor extends NavigationMixin(LightningElement) {
     }
   }
 
+  linkNavigate({ detail: { rowId } }) {
+    this.currentAction = "view";
+    this.actionTypeToFunc.view.args = ["view", rowId];
+    if (this.hasUnsavedChanges) {
+      this.confirmLoseChanges = true;
+    } else {
+      let targetAction = this.actionTypeToFunc[this.currentAction];
+      targetAction.func.apply(this, targetAction.args);
+    }
+  }
+
   // TODO: set this up
   // also need to get a confirmation modal for if any of the options and
   // has unsaved changes
