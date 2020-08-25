@@ -139,9 +139,19 @@ export default class Editor extends NavigationMixin(LightningElement) {
   // it would be way better to do it as a promise but
   @track modalIsOpen = false;
   launchModal() {
+    if (this.hasUnsavedChanges) {
+      this.currentAction = "expand";
+      this.confirmLoseChanges = true;
+    } else {
+      this.expand();
+    }
+  }
+
+  expand() {
     this.modalIsOpen = true;
     this.resetColumnsEdit();
   }
+
   // TODO: this needs to sync up or just refresh the data table that is behind the modal
   async closeModal({ detail: { isSave } }) {
     if (!isSave && this.hasUnsavedChanges) {
@@ -696,7 +706,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
     },
     sort: { func: this.updateColumnSorting, args: [] },
     close: { func: this.commitRecordChange, args: [] },
-    refresh: { func: this.requestRefreshedRecords, args: [] }
+    refresh: { func: this.requestRefreshedRecords, args: [] },
+    expand: { func: this.launchModal, args: [] }
   };
 
   confirmDiscard({ detail: { isSave } }) {
