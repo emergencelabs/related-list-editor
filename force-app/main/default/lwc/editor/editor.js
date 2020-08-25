@@ -434,11 +434,15 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   async updateChildRecords(records) {
-    let childRecords = records.map((r) => {
-      let clone = { ...r };
-      delete clone.RecordTypeId;
-      return clone;
-    });
+    let childRecords = records
+      .filter((record) => {
+        return !!this.cellStatusMap[record.Id];
+      })
+      .map((r) => {
+        let clone = { ...r };
+        delete clone.RecordTypeId;
+        return clone;
+      });
     return updateChildRecords({ childRecords });
   }
 
@@ -474,6 +478,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
       let message = "";
 
       let errorCount = Object.keys(errors).length;
+
       if (errorCount) {
         if (errorCount === commitAttemptCount) {
           title = `${errorCount} records were unable to be updated`;
@@ -489,23 +494,32 @@ export default class Editor extends NavigationMixin(LightningElement) {
         let errorObj = {
           rows: {}
         };
+        window.console.log(JSON.stringify(errors, null, 2));
+
         Object.keys(errors).forEach((id) => {
           errorObj.rows[id] = {
             title: `We found ${Object.keys(errors[id]).length} errors`,
-            messages: Object.values(errors[id]),
+            messages: `${Object.keys(errors[id])[0]}: ${Object.values(
+              errors[id]
+            )}`,
             fieldNames: Object.keys(errors[id])
           };
         });
         this.errors = errorObj;
-        this.cellStatusMap = Object.keys(this.cellStatusMap)
-          .filter((id) => !!errors[id])
-          .map((id) => {
-            return this.cellStatusMap[id];
-          });
-        // TODO figure out name
+
+        let interimStatusMap = {};
+        for (let rowId of Object.keys(this.cellStatusMap)) {
+          if (errors[rowId]) {
+            interimStatusMap[rowId] = this.cellStatusMap[rowId];
+          }
+        }
+        this.cellStatusMap = interimStatusMap;
+
         this.resetFuncs.forEach((o) => {
           if (!errors[o.rowId]) {
             let targetObj = this.newRecords.find((r) => r.Id === o.rowId);
+            let rIndex = this.records.findIndex((r) => r.Id === o.rowId);
+            this.records[rIndex] = targetObj;
             let newValue = o.isReference
               ? {
                   Id: targetObj[o.field],
@@ -517,10 +531,11 @@ export default class Editor extends NavigationMixin(LightningElement) {
             o.reset(stylingOnly, newValue);
           }
         });
+        // FILTER OUT RESET FUNCS THAT WERE CALLED
       } else {
         this.resetErrors();
         this.cellStatusMap = {};
-        // TODO figure out name and update for lookup values
+
         this.resetFuncs.forEach((o) => {
           let targetObj = this.newRecords.find((r) => r.Id === o.rowId);
           let newValue = o.isReference
@@ -531,12 +546,13 @@ export default class Editor extends NavigationMixin(LightningElement) {
                   : ""
               }
             : targetObj[o.field];
-
           o.reset(stylingOnly, newValue);
         });
+        // FILTER OUT RESET FUNCS THAT WERE CALLED
+        this.records = [...this.newRecords];
         this.modalIsOpen = false;
       }
-      this.records = [...this.newRecords];
+
       this.dispatchEvent(
         new ShowToastEvent({
           title,
@@ -551,13 +567,19 @@ export default class Editor extends NavigationMixin(LightningElement) {
 
       this.cellStatusMap = {};
       this.resetFuncs.forEach((o) => {
+        window.console.log(`calling lower reset for row ${o.rowId}`);
         o.reset(stylingOnly);
       });
+      // FILTER OUT RESET FUNCS THAT WERE CALLED
       this.modalIsOpen = false;
     }
     if (modalTrigger) {
       this.resetColumnsEdit();
     }
+    window.console.log(
+      "resetfuncs",
+      JSON.parse(JSON.stringify(this.resetFuncs))
+    );
     return !this.hasErrors;
   }
 

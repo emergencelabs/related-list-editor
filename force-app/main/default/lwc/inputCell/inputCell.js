@@ -287,6 +287,7 @@ export default class InputCell extends LightningElement {
       this.componentToSelector[this.inputDetails.component]
     );
     this.inlinedValue = null;
+
     if (!stylingOnly) {
       if (this.inputDetails.component === "reference") {
         if (this.originalLookupValue) {
