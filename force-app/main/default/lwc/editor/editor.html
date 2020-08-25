@@ -22,6 +22,7 @@
     require-new-modal={requireNewModal}
     allow-edit-modal={allowEditModal}
     reason-for-new-modal={reasonForNewModal}
+    sort-string={sortedByString}
     ondisplaymodal={launchModal}
     onrefreshrecords={refreshRecords}
   ></c-header>
@@ -84,6 +85,7 @@
           onsort={updateColumnSorting}
           onrowaction={handleRowAction}
           onlinknavigate={linkNavigate}
+          onheaderaction={secondarySort}
           sorted-by={columnSortColumn}
           sorted-direction={columnSortDirection}
           show-row-number-column

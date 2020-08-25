@@ -362,7 +362,27 @@ export default class Editor extends NavigationMixin(LightningElement) {
           fieldDetail,
           lookupId,
           sortable: fieldDetail.sortable,
-          editable: true
+          editable: true,
+          actions: [
+            {
+              label: "Secondary Sort Ascending",
+              checked: false,
+              name: "asc",
+              disabled:
+                this.columnSortColumn === normalizedApiName ||
+                !fieldDetail.sortable,
+              iconName: "utility:arrowup"
+            },
+            {
+              label: "Secondary Sort Descending",
+              checked: false,
+              name: "desc",
+              disabled:
+                this.columnSortColumn === normalizedApiName ||
+                !fieldDetail.sortable,
+              iconName: "utility:arrowdown"
+            }
+          ]
         };
       });
     if (this.isTableLayout) {
@@ -385,13 +405,89 @@ export default class Editor extends NavigationMixin(LightningElement) {
   // TODO: this is going to need to store the ORDER BY and OFFSET (maybe, TBD on if table sorting can reset it)
   // in state so that it can persist with whatever the latest sort is for infinite scroll
   // and also allow sort to change
+
+  secondarySortDetails = {
+    column: null,
+    ascending: false
+  };
+
+  secondarySort(event) {
+    // Retrieves the name of the selected filter
+    let actionName = event.detail.action.name;
+    // Retrieves the current column definition
+    // based on the selected filter
+    let colDef = event.detail.columnDefinition;
+    let columnIndex = this.tableColumns.findIndex(
+      (col) => col.fieldName === colDef.fieldName
+    );
+    let column = this.tableColumns[columnIndex];
+    let isAscending = this.actionName === "asc";
+
+    if (
+      this.secondarySortDetails.column === column.fieldName &&
+      ((this.secondarySortDetails.ascending && isAscending) ||
+        (!this.secondarySortDetails.ascending && !isAscending))
+    ) {
+      this.secondarySortDetails.column = null;
+    } else {
+      this.secondarySortDetails.column = column.fieldName;
+      this.secondarySortDetails.ascending = actionName === "asc";
+    }
+
+    column.actions = column.actions.map((action) => {
+      return {
+        ...action,
+        checked:
+          this.secondarySortDetails.column !== null &&
+          actionName === action.name
+      };
+    });
+    this.tableColumns[columnIndex] = { ...column };
+    this.tableColumns = [...this.tableColumns];
+
+    this.refreshRecords();
+  }
+
+  get sortedByString() {
+    let srt = `Sorted by ${this.childFields[this.columnSortColumn].label} ${
+      this.columnSortDirection === "asc" ? "Ascending" : "Descending"
+    }${
+      this.secondarySortDetails.column
+        ? `, and ${this.childFields[this.secondarySortDetails.column].label} ${
+            this.secondarySortDetails.ascending ? "Ascending" : "Descending"
+          }`
+        : ""
+    }`;
+    window.console.log(srt);
+    return srt;
+  }
+
   buildQueryString(offset = 0, customSortString = null) {
     let sortInfo = this.columnSortInfo;
 
     let offsetString = `OFFSET ${offset}`;
     let sortString = `ORDER BY ${sortInfo.column} ${
-      sortInfo.ascending ? "ASC  NULLS LAST" : "DESC  NULLS LAST"
+      sortInfo.ascending
+        ? `ASC NULLS LAST${
+            this.secondarySortDetails.column
+              ? `, ${this.secondarySortDetails.column} ${
+                  this.secondarySortDetails === "asc"
+                    ? "ASC NULLS LAST"
+                    : "DESC NULLS LAST"
+                }`
+              : ""
+          }`
+        : `DESC  NULLS LAST${
+            this.secondarySortDetails.column
+              ? `, ${this.secondarySortDetails.column} ${
+                  this.secondarySortDetails === "asc"
+                    ? "ASC NULLS LAST"
+                    : "DESC NULLS LAST"
+                }`
+              : ""
+          }`
     }`;
+    window.console.log(sortString);
     let limitString = `LIMIT ${this.layoutModeLimit}`;
     // filter out all fields that are not accessible to the current user
     let queryString = `SELECT Id, ${this.relatedListInfo.columns
@@ -821,9 +917,41 @@ export default class Editor extends NavigationMixin(LightningElement) {
       column: fieldName,
       ascending: sortDirection === "asc"
     };
+
+    if (this.secondarySortDetails.column === fieldName) {
+      this.secondarySortDetails.column = null;
+    }
+
+    // THIS CAN BE DONE BETTER WITH AN INDEX LOOKUP, SWAP, SPREAD
+    // IS THERE ANYWHERE ELSE THATS TRUE?
+    let columnIndex = this.tableColumns.findIndex(
+      (col) => col.fieldName === fieldName
+    );
+    let column = this.tableColumns[columnIndex];
+
+    column.actions = column.actions.map((action) => {
+      return {
+        ...action,
+        disabled: true,
+        checked: false
+      };
+    });
+    this.tableColumns[columnIndex] = { ...column };
+    this.tableColumns = [...this.tableColumns];
+
+    //
     this.currentOffset = 0;
     this.refreshingTable = true;
-    let sortString = `ORDER BY ${fieldName} ${sortDirection.toUpperCase()} NULLS LAST`;
+    let sortString = `ORDER BY ${fieldName} ${sortDirection.toUpperCase()} NULLS LAST${
+      this.secondarySortDetails.column
+        ? `, ${this.secondarySortDetails.column} ${
+            this.secondarySortDetails === "asc"
+              ? "ASC NULLS LAST"
+              : "DESC NULLS LAST"
+          }`
+        : ""
+    }`;
+    window.console.log(sortString);
     this.getChildRecords(
       this.buildQueryString(this.currentOffset, sortString)
     ).then((records) => {

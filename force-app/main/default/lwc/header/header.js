@@ -16,8 +16,19 @@ export default class Header extends NavigationMixin(LightningElement) {
   @api requireNewModal = false;
   @api reasonForNewModal;
 
-  get disableRefresh() {
+  @api sortString = "";
+
+  get zeroCount() {
     return this.count == 0;
+  }
+
+  get metaString() {
+    if (this.sortString) {
+      return `${this.count} item${this.count !== 1 ? "s" : ""} • ${
+        this.sortString
+      }`;
+    }
+    return ``;
   }
 
   newRecord() {
