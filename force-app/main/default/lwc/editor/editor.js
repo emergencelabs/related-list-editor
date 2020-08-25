@@ -93,7 +93,13 @@ export default class Editor extends NavigationMixin(LightningElement) {
   newDraftValue({
     detail: { rowId, field, value, isReference, isChanged, isInvalid, reset }
   }) {
-    this.addRowToResetFuncs({ rowId, field, reset, isReference });
+    this.addRowToResetFuncs({
+      rowId,
+      field,
+      reset,
+      isReference,
+      called: false
+    });
     let cell = this.cellStatusMap[rowId];
     if (cell) {
       cell[field] = { isChanged, isInvalid };
@@ -461,7 +467,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
         // TODO figure out name and update for lookup values
         this.resetFuncs.forEach((o) => {
           o.reset(false);
+          o.called = true;
         });
+        this.resetFuncs = this.resetFuncs.filter((o) => !o.called);
         this.modalIsOpen = false;
         this.dispatchEvent(
           new ShowToastEvent({
@@ -529,9 +537,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
                 }
               : targetObj[o.field];
             o.reset(stylingOnly, newValue);
+            o.called = true;
           }
         });
-        // FILTER OUT RESET FUNCS THAT WERE CALLED
+        this.resetFuncs = this.resetFuncs.filter((o) => !o.called);
       } else {
         this.resetErrors();
         this.cellStatusMap = {};
@@ -547,7 +556,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
               }
             : targetObj[o.field];
           o.reset(stylingOnly, newValue);
+          o.called = true;
         });
+        this.resetFuncs = this.resetFuncs.filter((o) => !o.called);
         // FILTER OUT RESET FUNCS THAT WERE CALLED
         this.records = [...this.newRecords];
         this.modalIsOpen = false;
@@ -567,10 +578,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
 
       this.cellStatusMap = {};
       this.resetFuncs.forEach((o) => {
-        window.console.log(`calling lower reset for row ${o.rowId}`);
         o.reset(stylingOnly);
+        o.called = true;
       });
-      // FILTER OUT RESET FUNCS THAT WERE CALLED
+      this.resetFuncs = this.resetFuncs.filter((o) => !o.called);
       this.modalIsOpen = false;
     }
     if (modalTrigger) {
@@ -738,7 +749,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
       this.cellStatusMap = {};
       this.resetFuncs.forEach((o) => {
         o.reset();
+        o.called = true;
       });
+      this.resetFuncs = this.resetFuncs.filter((o) => !o.called);
       let targetAction = this.actionTypeToFunc[this.currentAction];
       if (targetAction) {
         targetAction.func.apply(this, targetAction.args);

@@ -1,3 +1,9 @@
 lightning-primitive-cell-factory > div.slds-truncate {
   overflow: unset;
 }
+
+td.slds-has-error > lightning-primitive-cell-factory > div.slds-truncate {
+  overflow: unset;
+  border: 2px solid var(--lwc-colorBorderError,rgb(194, 57, 52));
+}
+
