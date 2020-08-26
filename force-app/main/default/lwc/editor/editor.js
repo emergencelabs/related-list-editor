@@ -587,10 +587,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     if (modalTrigger) {
       this.resetColumnsEdit();
     }
-    window.console.log(
-      "resetfuncs",
-      JSON.parse(JSON.stringify(this.resetFuncs))
-    );
+
     return !this.hasErrors;
   }
 

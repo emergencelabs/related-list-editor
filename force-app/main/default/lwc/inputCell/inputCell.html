@@ -21,7 +21,12 @@
             value={innerValue}
             field-type={fieldDetail.dataType}
             is-rich-text={fieldDetail.htmlFormatted}
-            style="flex-grow: 1; overflow: scroll; max-height: 50px;"
+            style="
+              flex-grow: 1;
+              overflow: hidden;
+              max-height: 50px;
+              text-overflow: ellipsis;
+            "
           ></c-formatted-tile-value>
         </template>
         <template if:true={isNameField}>

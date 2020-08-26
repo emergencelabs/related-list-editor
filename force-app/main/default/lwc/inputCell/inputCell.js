@@ -359,7 +359,9 @@ export default class InputCell extends LightningElement {
         }
         if (this.editing && isValid) {
           this.editing = false;
-
+          // TODO: this needs to run again so that grid gets removed but it needs to know
+          // if it shoulod still be edited
+          //this.setContainerClasses();
           if (!this.isModalInput) {
             let value = this.getValueFromInput();
             if (this.isLookupInput) {

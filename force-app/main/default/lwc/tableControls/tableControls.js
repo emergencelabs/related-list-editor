@@ -7,7 +7,7 @@ export default class TableControls extends LightningElement {
 
   get style() {
     if (this.noScroll) {
-      return "margin-top:50px;";
+      return "margin-top: 30px;padding-bottom: 20px;";
     }
     return "";
   }
