@@ -309,9 +309,16 @@ export default class Editor extends NavigationMixin(LightningElement) {
   populateTableColumns(targetList) {
     // 1: Filter out all columns that the user does not have access to
     // 2: Map the columns into what the datatable needs
-    let containerWidth = this.template
-      .querySelector(".table-container")
-      .getBoundingClientRect().width;
+    // let containerWidth = this.template
+    //   .querySelector(".table-container")
+    //   .getBoundingClientRect().width;
+
+    /*     initialWidth: this.getColumnWidth(
+            containerWidth,
+            available.length,
+            fieldDetail.dataType
+          ),
+          */
 
     let columns = targetList.columns
       .filter(({ fieldApiName, lookupId }) => {
@@ -352,11 +359,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
             defaultEdit: this.isStandalone || this.modalIsOpen,
             recordTypeId: { fieldName: "RecordTypeId" }
           },
-          initialWidth: this.getColumnWidth(
-            containerWidth,
-            available.length,
-            fieldDetail.dataType
-          ),
           hideDefaultActions: this.isStandalone || this.modalIsOpen,
           fieldName: normalizedApiName,
           fieldDetail,
