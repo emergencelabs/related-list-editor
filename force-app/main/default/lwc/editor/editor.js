@@ -204,7 +204,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   get tableContainerHeight() {
-    let height = `height: ${this.isStandalone ? "25" : "15"}rem`;
+    let height = `height: ${
+      this.isStandalone ? "calc(100vh - 250px)" : "15rem"
+    }`;
     if (this.totalRecordsCount < this.layoutModeLimit) {
       height = "height:100%;";
     }
