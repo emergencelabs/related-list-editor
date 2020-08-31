@@ -27,7 +27,8 @@
       <c-warning
         if:false={relatedListInfo}
         list-name={listNameText}
-        cant-access={objectInaccessible}
+        has-error={hasChildObjectError}
+        error-code={childObjectErrorCode}
       ></c-warning>
     </template>
   </template>

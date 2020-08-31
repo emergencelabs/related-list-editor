@@ -32,11 +32,17 @@ export default class Application extends LightningElement {
     return this.relatedListInfo && this.childObjectInfo.data;
   }
 
-  get objectInaccessible() {
+  get hasChildObjectError() {
     if (this.childObjectInfo.error) {
       window.console.error(this.childObjectInfo.error);
     }
     return !!this.childObjectInfo.error;
+  }
+  get childObjectErrorCode() {
+    if (this.childObjectInfo && this.childObjectInfo.error) {
+      return this.childObjectInfo.error.body.errorCode;
+    }
+    return null;
   }
 
   get layoutMode() {
