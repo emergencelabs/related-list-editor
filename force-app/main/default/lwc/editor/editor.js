@@ -933,12 +933,13 @@ export default class Editor extends NavigationMixin(LightningElement) {
       this.getRecordCount(this.buildCountQueryString()),
       this.getChildRecords(this.buildQueryString())
     ]).then(([count, records]) => {
+      this.currentOffset = 0;
       this.totalRecordsCount = count;
       this.refreshingTable = false;
       this.records = records;
       this.newRecords = [...this.records];
 
-      this.canRequestMore = this.records.length === this.layoutModeLimit;
+      this.canRequestMore = records.length === this.layoutModeLimit;
       let table = this.template.querySelector("c-table");
       if (table) {
         table.findElement().scrollTop = 0;
@@ -954,11 +955,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
         let normalizedApiName = fieldApiName.includes(".")
           ? lookupId.replace(".", "")
           : fieldApiName;
+        let fieldDetail = this.childFields[normalizedApiName] || {};
 
         let {
           relationshipName,
           referenceToInfos: [ref]
-        } = this.childFields[normalizedApiName];
+        } = fieldDetail;
         if (relationshipName) {
           if (relationshipName === "Owner") {
             return Promise.resolve({ [normalizedApiName]: "standard:user" });
