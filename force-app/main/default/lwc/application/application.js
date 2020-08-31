@@ -33,6 +33,9 @@ export default class Application extends LightningElement {
   }
 
   get objectInaccessible() {
+    if (this.childObjectInfo.error) {
+      window.console.error(this.childObjectInfo.error);
+    }
     return !!this.childObjectInfo.error;
   }
 
@@ -111,15 +114,30 @@ export default class Application extends LightningElement {
     return null;
   }
 
+  renderedCallback() {
+    console.log(`rendering for ${this.objectApiName}`);
+  }
+
+  disconnectedCallback() {
+    console.log(`removing listener for ${this.objectApiName}`);
+    window.removeEventListener("message", this.listener);
+  }
+  listener;
+  // TODO: why does the listener execute so many times?
+  // i can remove the listener once i get the answer i want
+  // but then it won't be there the next time
   async connectedCallback() {
-    this.recordTypeId = await this.findRecordTypeId();
-    window.addEventListener("message", ({ origin, data: apiResponse }) => {
+    this.listener = ({ origin, data: apiResponse = {} }) => {
       if (
         (origin === `${this.urlBase}--rle.visualforce.com` ||
           origin.includes(`${this.urlBase}--rle`)) &&
-        this.listSelection
+        this.listSelection &&
+        apiResponse.object === this.objectApiName
       ) {
-        this.relatedListInfo = apiResponse.relatedLists.find(
+        console.log(
+          `listener being called for ${this.objectApiName} and for ${apiResponse.object}`
+        );
+        this.relatedListInfo = apiResponse.data.relatedLists.find(
           (rli) =>
             rli.sobject === this.parsedListDetails.childObject &&
             rli.field === this.parsedListDetails.relationshipField
@@ -127,6 +145,9 @@ export default class Application extends LightningElement {
 
         this.loading = false;
       }
-    });
+    };
+    this.recordTypeId = await this.findRecordTypeId();
+    console.log(`attaching listener for ${this.objectApiName}`);
+    window.addEventListener("message", this.listener);
   }
 }

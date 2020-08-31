@@ -373,6 +373,7 @@ export default class InputCell extends LightningElement {
           }
         }
       };
+      // TODO: need to remove the handler listener from the window at the appropriate time
       this.template.addEventListener("mousedown", (e) => {
         if (this.editing) {
           let inputEl = this.template.querySelector("lightning-input");

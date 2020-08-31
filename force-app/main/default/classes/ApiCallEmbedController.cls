@@ -1,6 +1,7 @@
 public with sharing class ApiCallEmbedController {
   public String pageLayoutDescribeResponse { get; set; }
   public String targetOrigin { get; set; }
+  public String objectApiName { get; set; }
   public ApiCallEmbedController() {
     PageReference currentPage = ApexPages.currentPage();
     Map<String, String> parameters = currentPage.getParameters();
@@ -9,6 +10,7 @@ public with sharing class ApiCallEmbedController {
       ? '49.0'
       : parameters.get('v');
     String parentObjectApiName = parameters.get('n');
+    this.objectApiName = parentObjectApiName;
     String recordTypeId = parameters.get('r');
     String restAPIURL =
       System.Url.getOrgDomainUrl().toExternalForm() +
