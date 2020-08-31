@@ -1,5 +1,5 @@
 <template>
-  <div style="padding: 5px 10px;" class={containerClasses}>
+  <div class={containerClasses} style={containerCursorStyle}>
     <template if:false={editing}>
       <div
         style="
@@ -99,7 +99,10 @@
           onselection={changeInputValue}
         ></c-picklist-input>
       </div>
-      <div if:true={isLookupInput}>
+      <div
+        if:true={isLookupInput}
+        style="min-height: calc(var(--lwc-heightInput, 1.875rem) + (1px * 2));"
+      >
         <c-lookup-input
           initial-value={lookupValue}
           icon-name={referenceIcon}

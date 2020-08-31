@@ -257,6 +257,14 @@ export default class InputCell extends LightningElement {
     }`;
   }
 
+  get containerCursorStyle() {
+    return `${
+      this.disableInput || this.editing
+        ? "padding: 5px 10px;"
+        : "padding: 5px 10px;cursor:pointer"
+    }`;
+  }
+
   // TODO: adjust this to make it so that you basically can never enter
   // navigation mode
   arrowKeyPress = (event) => {
