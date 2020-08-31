@@ -260,8 +260,8 @@ export default class InputCell extends LightningElement {
   get containerCursorStyle() {
     return `${
       this.disableInput || this.editing
-        ? "padding: 5px 10px;"
-        : "padding: 5px 10px;cursor:pointer"
+        ? "padding: 5px 10px;min-height: calc(var(--lwc-heightInput, 1.875rem) + (1px * 2));"
+        : "padding: 5px 10px;min-height: calc(var(--lwc-heightInput, 1.875rem) + (1px * 2));cursor:pointer"
     }`;
   }
 
