@@ -79,6 +79,11 @@ export default class InputCell extends LightningElement {
   get accessIconName() {
     return this.disableInputReason >= 1 ? "utility:lock" : "utility:edit";
   }
+  get hoverIconStyle() {
+    return this.disableInputReason >= 1
+      ? "pointer-events: none;cursor:not-allowed"
+      : "";
+  }
 
   @track latestReferenceValue;
   get currentReferenceValue() {

@@ -38,12 +38,14 @@
           >
         </template>
         <!-- <span>{value}</span> -->
-        <lightning-button-icon
-          variant="bare"
-          icon-name={accessIconName}
-          if:true={isHovering}
-          onclick={inlineEdit}
-        ></lightning-button-icon>
+        <div style={hoverIconStyle}>
+          <lightning-button-icon
+            variant="bare"
+            icon-name={accessIconName}
+            if:true={isHovering}
+            onclick={inlineEdit}
+          ></lightning-button-icon>
+        </div>
       </div>
     </template>
     <template if:true={editing}>
