@@ -137,9 +137,9 @@ export default class InputCell extends LightningElement {
     );
   }
 
-  @track inlinedValue = null;
+  @track inlinedValue;
   get innerValue() {
-    if (this.inlinedValue !== null) return this.inlinedValue;
+    if (this.inlinedValue !== undefined) return this.inlinedValue;
     return this.value;
   }
 
@@ -209,7 +209,7 @@ export default class InputCell extends LightningElement {
     // more consideration will apply for lookups and how certain modal elements
     // are handled - potentially need to extract this logic out for use in multiple
     // functions
-
+    window.console.log(value);
     let eventDetail = {
       composed: true,
       bubbles: true,
@@ -300,7 +300,7 @@ export default class InputCell extends LightningElement {
     let input = this.template.querySelector(
       this.componentToSelector[this.inputDetails.component]
     );
-    this.inlinedValue = null;
+    this.inlinedValue = undefined;
 
     if (!stylingOnly) {
       if (this.inputDetails.component === "reference") {
@@ -365,14 +365,25 @@ export default class InputCell extends LightningElement {
         this.launchModalEdit();
       }
 
-      let handler = () => {
+      let templateHandler = (e) => {
+        if (this.editing) {
+          console.log("template click");
+          e._isInTemplate = true;
+        }
+      };
+
+      let handler = (e) => {
+        console.log("handler");
+        if (e._isInTemplate) {
+          console.log("short circuit");
+          return;
+        }
         let isValid = true;
         let input = this.template.querySelector("lightning-input");
         if (input) {
           isValid = input.checkValidity();
         }
         if (this.editing && isValid) {
-          this.editing = false;
           // TODO: this needs to run again so that grid gets removed but it needs to know
           // if it shoulod still be edited
           //this.setContainerClasses();
@@ -385,18 +396,15 @@ export default class InputCell extends LightningElement {
               this.inlinedValue = value;
             }
           }
+          this.editing = false;
+          window.removeEventListener("mousedown", handler);
+          this.template.removeEventListener("mousedown", templateHandler, {
+            capture: false
+          });
         }
       };
-      // TODO: need to remove the handler listener from the window at the appropriate time
-      this.template.addEventListener("mousedown", (e) => {
-        if (this.editing) {
-          let inputEl = this.template.querySelector("lightning-input");
-          if (inputEl) {
-            inputEl.focus();
-          }
-          e.stopPropagation();
-        }
-      });
+
+      this.template.addEventListener("mousedown", templateHandler);
       window.addEventListener("mousedown", handler);
     }
   };
@@ -410,7 +418,7 @@ export default class InputCell extends LightningElement {
     } else if (this.isPicklistInput || this.isLookupInput) {
       return cmp.getValue();
     }
-
+    cmp.blur();
     return cmp.value;
   }
 

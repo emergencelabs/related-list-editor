@@ -209,6 +209,9 @@ export default class Lookup extends LightningElement {
       return;
     }
     this.updateSearchTerm(event.target.value);
+    // this.template
+    //   .querySelector(".slds-listbox__item")
+    //   .scrollIntoView({ behavior: "smooth", block: "end" });
   }
 
   handleKeyDown(event) {
