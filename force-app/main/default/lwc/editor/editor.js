@@ -53,7 +53,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   };
 
   get sharedContainerHeightStyle() {
-    if (this.loading || this.records.length) {
+    if (this.loading || this.records.length > 3) {
       return `min-height: 100px;`;
     }
     return ``;
