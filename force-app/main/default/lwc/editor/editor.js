@@ -332,13 +332,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
         if (fieldApiName.includes(".")) {
           normalizedApiName = lookupId.replace(".", "");
         }
-        if (
-          this.childFields[normalizedApiName].dataType === "EncryptedString"
-        ) {
+        let fielDetails = this.childFields[normalizedApiName];
+        if (fielDetails && fielDetails.dataType === "EncryptedString") {
           return false;
         }
 
-        return !!this.childFields[normalizedApiName];
+        return !!fielDetails;
       })
       .map((col) => {
         let { fieldApiName, lookupId, label } = col;
@@ -414,12 +413,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
         if (fieldApiName.includes(".")) {
           normalizedApiName = lookupId.replace(".", "");
         }
-        if (
-          this.childFields[normalizedApiName].dataType === "EncryptedString"
-        ) {
+        let fielDetails = this.childFields[normalizedApiName];
+        if (fielDetails && fielDetails.dataType === "EncryptedString") {
           return false;
         }
-        return !!this.childFields[normalizedApiName];
+
+        return !!fielDetails;
       })
       .map((c) => c.fieldApiName)
       .join(", ")} FROM ${this.childObjectApiName} WHERE ${
