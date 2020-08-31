@@ -120,12 +120,7 @@ export default class Application extends LightningElement {
     return null;
   }
 
-  renderedCallback() {
-    console.log(`rendering for ${this.objectApiName}`);
-  }
-
   disconnectedCallback() {
-    console.log(`removing listener for ${this.objectApiName}`);
     window.removeEventListener("message", this.listener);
   }
   listener;
@@ -140,9 +135,6 @@ export default class Application extends LightningElement {
         this.listSelection &&
         apiResponse.object === this.objectApiName
       ) {
-        console.log(
-          `listener being called for ${this.objectApiName} and for ${apiResponse.object}`
-        );
         this.relatedListInfo = apiResponse.data.relatedLists.find(
           (rli) =>
             rli.sobject === this.parsedListDetails.childObject &&
@@ -153,7 +145,6 @@ export default class Application extends LightningElement {
       }
     };
     this.recordTypeId = await this.findRecordTypeId();
-    console.log(`attaching listener for ${this.objectApiName}`);
     window.addEventListener("message", this.listener);
   }
 }

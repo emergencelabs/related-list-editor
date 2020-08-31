@@ -774,6 +774,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
         targetAction.func.apply(this, targetAction.args);
         targetAction.args = [];
       }
+      this.resetErrors();
     }
     this.confirmLoseChanges = false;
   }
