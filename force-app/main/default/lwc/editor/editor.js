@@ -29,6 +29,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
 
   @track iconName;
   @track tableColumns;
+  get tileColumns() {
+    if (this.tableColumns) {
+      return this.tableColumns.filter(({ type }) => type !== "action");
+    }
+    return [];
+  }
 
   @track loading = true;
 
@@ -328,7 +334,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
         }
         return !!this.childFields[normalizedApiName];
       })
-      .map((col, _, available) => {
+      .map((col) => {
         let { fieldApiName, lookupId, label } = col;
         let normalizedApiName = fieldApiName;
         if (fieldApiName.includes(".")) {
@@ -367,15 +373,15 @@ export default class Editor extends NavigationMixin(LightningElement) {
           editable: true
         };
       });
-    if (this.isTableLayout) {
-      columns = [
-        ...columns,
-        {
-          type: "action",
-          typeAttributes: { rowActions: this.actions, menuAlignment: "auto" }
-        }
-      ];
-    }
+
+    columns = [
+      ...columns,
+      {
+        type: "action",
+        typeAttributes: { rowActions: this.actions, menuAlignment: "auto" }
+      }
+    ];
+
     return columns;
   }
 
