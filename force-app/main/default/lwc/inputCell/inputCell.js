@@ -209,7 +209,7 @@ export default class InputCell extends LightningElement {
     // more consideration will apply for lookups and how certain modal elements
     // are handled - potentially need to extract this logic out for use in multiple
     // functions
-    window.console.log(value);
+    window.console.log(value, JSON.stringify(detail));
     let eventDetail = {
       composed: true,
       bubbles: true,
@@ -353,6 +353,45 @@ export default class InputCell extends LightningElement {
       }
     }
     this.setContainerClasses();
+    window.removeEventListener("mousedown", this.handler);
+    this.template.removeEventListener("mousedown", this.templateHandler, {
+      capture: false
+    });
+  };
+
+  handler = (e) => {
+    if (!e._isInTemplate) {
+      let isValid = true;
+      let input = this.template.querySelector("lightning-input");
+      if (input) {
+        isValid = input.checkValidity();
+      }
+      if (this.editing && isValid) {
+        // TODO: this needs to run again so that grid gets removed but it needs to know
+        // if it shoulod still be edited
+        //this.setContainerClasses();
+        if (!this.isModalInput) {
+          let value = this.getValueFromInput();
+          if (this.isLookupInput) {
+            this.inlinedValue = value.title;
+            this.latestReferenceValue = { Id: value.id, Name: value.title };
+          } else {
+            this.inlinedValue = value;
+          }
+        }
+        this.editing = false;
+        window.removeEventListener("mousedown", this.handler);
+        this.template.removeEventListener("mousedown", this.templateHandler, {
+          capture: false
+        });
+      }
+    }
+  };
+
+  templateHandler = (e) => {
+    if (this.editing) {
+      e._isInTemplate = true;
+    }
   };
 
   inlineEdit = () => {
@@ -365,47 +404,8 @@ export default class InputCell extends LightningElement {
         this.launchModalEdit();
       }
 
-      let templateHandler = (e) => {
-        if (this.editing) {
-          console.log("template click");
-          e._isInTemplate = true;
-        }
-      };
-
-      let handler = (e) => {
-        console.log("handler");
-        if (e._isInTemplate) {
-          console.log("short circuit");
-          return;
-        }
-        let isValid = true;
-        let input = this.template.querySelector("lightning-input");
-        if (input) {
-          isValid = input.checkValidity();
-        }
-        if (this.editing && isValid) {
-          // TODO: this needs to run again so that grid gets removed but it needs to know
-          // if it shoulod still be edited
-          //this.setContainerClasses();
-          if (!this.isModalInput) {
-            let value = this.getValueFromInput();
-            if (this.isLookupInput) {
-              this.inlinedValue = value.title;
-              this.latestReferenceValue = { Id: value.id, Name: value.title };
-            } else {
-              this.inlinedValue = value;
-            }
-          }
-          this.editing = false;
-          window.removeEventListener("mousedown", handler);
-          this.template.removeEventListener("mousedown", templateHandler, {
-            capture: false
-          });
-        }
-      };
-
-      this.template.addEventListener("mousedown", templateHandler);
-      window.addEventListener("mousedown", handler);
+      this.template.addEventListener("mousedown", this.templateHandler);
+      window.addEventListener("mousedown", this.handler);
     }
   };
 
