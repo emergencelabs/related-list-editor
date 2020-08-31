@@ -414,6 +414,11 @@ export default class Editor extends NavigationMixin(LightningElement) {
         if (fieldApiName.includes(".")) {
           normalizedApiName = lookupId.replace(".", "");
         }
+        if (
+          this.childFields[normalizedApiName].dataType === "EncryptedString"
+        ) {
+          return false;
+        }
         return !!this.childFields[normalizedApiName];
       })
       .map((c) => c.fieldApiName)
