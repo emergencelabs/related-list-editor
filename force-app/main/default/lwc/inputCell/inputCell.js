@@ -162,7 +162,8 @@ export default class InputCell extends LightningElement {
 
   get lookupObjectApiName() {
     if (this.fieldDetail.referenceToInfos) {
-      return this.fieldDetail.referenceToInfos[0].apiName;
+      let name = this.fieldDetail.referenceToInfos[0].apiName;
+      return name === "Group" ? "User" : name;
     }
     return null;
   }

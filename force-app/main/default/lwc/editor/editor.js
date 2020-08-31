@@ -958,6 +958,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
           referenceToInfos: [ref]
         } = this.childFields[normalizedApiName];
         if (relationshipName) {
+          if (relationshipName === "Owner") {
+            return Promise.resolve({ [normalizedApiName]: "standard:user" });
+          }
           return this.fetchIcon(ref.apiName).then((iconName) => {
             return { [normalizedApiName]: iconName };
           });
