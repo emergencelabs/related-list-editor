@@ -636,12 +636,13 @@ export default class Editor extends NavigationMixin(LightningElement) {
     });
   }
 
-  async getNextRecords({ detail: { offset } }) {
+  async getNextRecords() {
     this.loading = true;
-    if (offset <= 2000) {
+    this.currentOffset += this.layoutModeLimit;
+    if (this.currentOffset <= 2000) {
       try {
         let nextRecords = await this.getChildRecords(
-          this.buildQueryString(offset)
+          this.buildQueryString(this.currentOffset)
         );
         this.canRequestMore = nextRecords.length === this.layoutModeLimit;
         this.records = [...this.records, ...nextRecords];
@@ -774,7 +775,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
         targetAction.func.apply(this, targetAction.args);
         targetAction.args = [];
       }
-      this.resetErrors();
+      //this.resetErrors();
     }
     this.confirmLoseChanges = false;
   }

@@ -15,8 +15,6 @@ export default class TileList extends NavigationMixin(LightningElement) {
   @api columns;
   @api recordId;
 
-  offset = 0;
-
   get showViewMoreButton() {
     return (
       this.records.length &&
@@ -39,10 +37,8 @@ export default class TileList extends NavigationMixin(LightningElement) {
 
   viewAll() {
     if (this.isStandalone) {
-      this.offset += this.layoutModeLimit;
-      this.dispatchEvent(
-        new CustomEvent("viewmore", { detail: { offset: this.offset } })
-      );
+      this.offset = this.offset + this.layoutModeLimit;
+      this.dispatchEvent(new CustomEvent("viewmore"));
     } else {
       this[NavigationMixin.Navigate]({
         type: "standard__component",

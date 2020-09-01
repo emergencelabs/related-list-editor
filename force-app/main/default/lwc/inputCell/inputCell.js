@@ -354,9 +354,6 @@ export default class InputCell extends LightningElement {
     }
     this.setContainerClasses();
     window.removeEventListener("mousedown", this.handler);
-    this.template.removeEventListener("mousedown", this.templateHandler, {
-      capture: false
-    });
   };
 
   handler = (e) => {
