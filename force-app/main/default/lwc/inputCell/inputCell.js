@@ -365,7 +365,7 @@ export default class InputCell extends LightningElement {
       }
       if (this.editing && isValid) {
         // TODO: this needs to run again so that grid gets removed but it needs to know
-        // if it shoulod still be edited
+        // need to basically check if grid is in the string and if it is, parse it out
         //this.setContainerClasses();
         if (!this.isModalInput) {
           let value = this.getValueFromInput();
