@@ -15,7 +15,7 @@ import deleteChildRecord from "@salesforce/apex/ChildRecordService.deleteChildRe
 // if a compound name field is in here and not that one then you can't edit inline?
 // also need to filter out owner and some consideration may apply for multi currency here?
 const IGNORED_REQUIRED_FIELDS = ["OwnerId"];
-
+const MIN_COLUMN_WIDTH = "90";
 export default class Editor extends NavigationMixin(LightningElement) {
   @api layoutMode;
   @api isStandalone = false;
@@ -35,6 +35,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     }
     return [];
   }
+  MIN_COLUMN_WIDTH = MIN_COLUMN_WIDTH;
 
   @track loading = true;
 

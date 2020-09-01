@@ -85,10 +85,9 @@
           show-row-number-column
           errors={errors}
           no-scroll={noScroll}
-          min-column-width="50"
+          min-column-width={MIN_COLUMN_WIDTH}
         >
         </c-table>
-        <!-- <lightning-datatable></lightning-datatable> -->
         <div style="position: relative;" if:true={canRequestMore}>
           <div
             style="
@@ -110,9 +109,7 @@
       </div>
     </template>
   </div>
-  <!-- TODO: need to add the 'new' button to the modal here
-  if you cannot create them inline
--->
+
   <c-slotted-modal
     if:true={modalIsOpen}
     modal-title={listLabel}
@@ -157,7 +154,7 @@
           show-row-number-column
           errors={errors}
           no-scroll={noScroll}
-          min-column-width="50"
+          min-column-width={MIN_COLUMN_WIDTH}
         >
         </c-table>
       </div>
