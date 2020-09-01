@@ -58,11 +58,7 @@
         can-request-more={canRequestMore}
         layout-mode-limit={layoutModeLimit}
       ></c-tile-list>
-      <div
-        if:true={isTableLayout}
-        class="slds-card"
-        style={tableContainerHeight}
-      >
+      <div if:true={isTableLayout} style={tableContainerHeight}>
         <div class="slds-is-relative">
           <div if:true={refreshingTable}>
             <lightning-spinner

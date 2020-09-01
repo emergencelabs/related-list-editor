@@ -13,23 +13,25 @@
       style="display: none;"
     ></iframe>
     <template if:false={loading}>
-      <c-editor
-        if:true={canRenderEditor}
-        layout-mode={layoutMode}
-        is-standalone={isStandalone}
-        record-id={recordId}
-        object-api-name={objectApiName}
-        related-list-info={relatedListInfo}
-        child-fields={childObjectInfo.data.fields}
-        child-record-type-info={childObjectInfo.data.recordTypeInfos}
-        child-object-label={childObjectInfo.data.label}
-      ></c-editor>
-      <c-warning
-        if:false={relatedListInfo}
-        list-name={listNameText}
-        has-error={hasChildObjectError}
-        error-code={childObjectErrorCode}
-      ></c-warning>
+      <article class="slds-card slds-card_boundary">
+        <c-editor
+          if:true={canRenderEditor}
+          layout-mode={layoutMode}
+          is-standalone={isStandalone}
+          record-id={recordId}
+          object-api-name={objectApiName}
+          related-list-info={relatedListInfo}
+          child-fields={childObjectInfo.data.fields}
+          child-record-type-info={childObjectInfo.data.recordTypeInfos}
+          child-object-label={childObjectInfo.data.label}
+        ></c-editor>
+        <c-warning
+          if:false={relatedListInfo}
+          list-name={listNameText}
+          has-error={hasChildObjectError}
+          error-code={childObjectErrorCode}
+        ></c-warning>
+      </article>
     </template>
   </template>
 </template>
