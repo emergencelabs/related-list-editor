@@ -209,7 +209,7 @@ export default class InputCell extends LightningElement {
     // more consideration will apply for lookups and how certain modal elements
     // are handled - potentially need to extract this logic out for use in multiple
     // functions
-    window.console.log(value, JSON.stringify(detail));
+
     let eventDetail = {
       composed: true,
       bubbles: true,
@@ -225,6 +225,7 @@ export default class InputCell extends LightningElement {
         reset: this.resetInputValue
       }
     };
+    console.log(value, JSON.stringify(this.originalValue));
     if (this.isReference) {
       let hasOriginal = !!this.originalLookupValue;
       let hasNew = !!value.Id;
@@ -241,7 +242,7 @@ export default class InputCell extends LightningElement {
         this.setContainerClasses();
         eventDetail.detail.isChanged = false;
       }
-    } else if (value != this.value && !(this.isBlank && value === "")) {
+    } else if (value != this.originalValue && !(this.isBlank && value === "")) {
       this.setContainerClasses("slds-is-edited");
     } else {
       this.setContainerClasses();
