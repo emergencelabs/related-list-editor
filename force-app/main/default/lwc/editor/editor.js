@@ -743,6 +743,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
 
   currentAction = null;
   actionTypeToFunc = {
+    new: {
+      func: this.newRecordModal,
+      args: []
+    },
     view: {
       func: this.navigate,
       args: []
@@ -775,9 +779,58 @@ export default class Editor extends NavigationMixin(LightningElement) {
         targetAction.func.apply(this, targetAction.args);
         targetAction.args = [];
       }
-      //this.resetErrors();
+      this.resetErrors();
     }
     this.confirmLoseChanges = false;
+  }
+
+  requestNewRecordModal() {
+    this.currentAction = "new";
+    if (this.hasUnsavedChanges) {
+      this.confirmLoseChanges = true;
+    } else {
+      let targetAction = this.actionTypeToFunc[this.currentAction];
+      targetAction.func.apply(this, targetAction.args);
+    }
+  }
+
+  newRecordModal() {
+    this.generateNewRecordPromise().then((refresh) => {
+      if (refresh) {
+        this.requestRefreshedRecords();
+      }
+    });
+  }
+
+  intervalId;
+  generateNewRecordPromise() {
+    return new Promise((resolve) => {
+      this[NavigationMixin.Navigate]({
+        type: "standard__objectPage",
+        attributes: {
+          objectApiName: this.childObjectApiName,
+          actionName: "new"
+        },
+        state: {
+          defaultFieldValues: `${this.relationshipField}=${this.recordId}`,
+          nooverride: "1",
+          // useRecordTypeCheck: "1",
+          navigationLocation: "LOOKUP"
+        }
+      });
+      if (this.layoutMode > 1) {
+        let originalUrl = window.location.href;
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this.intervalId = window.setInterval(() => {
+          if (window.location.href === originalUrl) {
+            resolve(true);
+            window.clearInterval(this.intervalId);
+          }
+        }, 1200);
+      } else {
+        resolve(false);
+      }
+    });
   }
 
   linkNavigate({ detail: { rowId } }) {
@@ -790,13 +843,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
       targetAction.func.apply(this, targetAction.args);
     }
   }
-
-  // TODO: set this up
-  // also need to get a confirmation modal for if any of the options and
-  // has unsaved changes
-  // could create a map of actiontype to function so that
-  // when this has to pop the modal we can just store the actionType
-  // and then once chosen either clear type and if confirm call actionType func
 
   handleRowAction(event) {
     const { value } = event.detail.action;
@@ -813,16 +859,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
       let targetAction = this.actionTypeToFunc[this.currentAction];
       targetAction.func.apply(this, targetAction.args);
     }
-
-    // window.console.log(JSON.parse(JSON.stringify(action)));
-    // window.console.log(JSON.parse(JSON.stringify(row)));
   }
 
-  // TODO: need to potentially modify the layoutModeLimit as well as the table container height
-  // if standalone desktop
   customSortInfo = null;
   updateColumnSorting(event) {
-    // TODO: this same concept will apply for clicking new
     if (this.hasUnsavedChanges) {
       this.currentAction = "sort";
       this.actionTypeToFunc.sort.args = [event];
@@ -991,6 +1031,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
     this.canRequestMore = this.records.length === this.layoutModeLimit;
 
     this.loading = false;
+  }
+
+  disconnectedCallback() {
+    if (this.intervalId) {
+      window.clearInterval(this.intervalId);
+    }
   }
 
   getColumnWidth(totalWidth, columnCount, dataType) {
