@@ -26,6 +26,7 @@
               overflow: hidden;
               max-height: 50px;
               text-overflow: ellipsis;
+              width: 100%;
             "
           ></c-formatted-tile-value>
         </template>
@@ -79,7 +80,7 @@
           value={modalValue}
           field-type={fieldDetail.dataType}
           is-rich-text={fieldDetail.htmlFormatted}
-          style="flex-grow: 1; overflow: hidden; max-height: 50px;"
+          style="flex-grow: 1; overflow: hidden; max-height: 50px; width: 100%;"
         ></c-formatted-tile-value>
 
         <lightning-button-icon

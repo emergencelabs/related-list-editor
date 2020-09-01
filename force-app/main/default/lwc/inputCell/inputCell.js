@@ -252,10 +252,8 @@ export default class InputCell extends LightningElement {
 
   setContainerClasses(append) {
     this.containerClasses = `slds-cell-edit ${
-      !this.isReference && !this.isPicklistInput ? "slds-truncate" : ""
-    } ${this.isRequired && this.editing ? "slds-grid" : ""} ${
-      append ? append : ""
-    }`;
+      this.isRequired && this.editing ? "slds-grid" : ""
+    } ${append ? append : ""}`;
   }
 
   get containerCursorStyle() {
