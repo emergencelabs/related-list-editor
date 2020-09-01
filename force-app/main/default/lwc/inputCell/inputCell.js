@@ -225,7 +225,7 @@ export default class InputCell extends LightningElement {
         reset: this.resetInputValue
       }
     };
-    console.log(value, JSON.stringify(this.originalValue));
+
     if (this.isReference) {
       let hasOriginal = !!this.originalLookupValue;
       let hasNew = !!value.Id;
@@ -363,9 +363,6 @@ export default class InputCell extends LightningElement {
         isValid = input.checkValidity();
       }
       if (this.editing && isValid) {
-        // TODO: this needs to run again so that grid gets removed but it needs to know
-        // need to basically check if grid is in the string and if it is, parse it out
-        //this.setContainerClasses();
         if (!this.isModalInput) {
           let value = this.getValueFromInput();
           if (this.isLookupInput) {
@@ -376,10 +373,13 @@ export default class InputCell extends LightningElement {
           }
         }
         this.editing = false;
+        this.setContainerClasses(
+          this.containerClasses.includes("slds-is-edited")
+            ? "slds-is-edited"
+            : ""
+        );
         window.removeEventListener("mousedown", this.handler);
-        this.template.removeEventListener("mousedown", this.templateHandler, {
-          capture: false
-        });
+        this.template.removeEventListener("mousedown", this.templateHandler);
       }
     }
   };
