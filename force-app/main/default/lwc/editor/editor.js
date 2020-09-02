@@ -525,13 +525,18 @@ export default class Editor extends NavigationMixin(LightningElement) {
         };
         window.console.log(JSON.stringify(errors, null, 2));
 
-        Object.keys(errors).forEach((id) => {
+        Object.keys(errors).forEach((id, index) => {
+          let errorKeys = Object.keys(errors[id]);
+          let fieldName = errorKeys[0];
+          let fieldDetails = this.childFields[fieldName];
+          let messagePrefix =
+            Number(fieldName) === index || !fieldDetails
+              ? "Error"
+              : fieldDetails.label;
           errorObj.rows[id] = {
-            title: `We found ${Object.keys(errors[id]).length} errors`,
-            messages: `${Object.keys(errors[id])[0]}: ${Object.values(
-              errors[id]
-            )}`,
-            fieldNames: Object.keys(errors[id])
+            title: `We found ${errorKeys.length} errors`,
+            messages: `${messagePrefix}: ${Object.values(errors[id])}`,
+            fieldNames: errorKeys
           };
         });
         this.errors = errorObj;
