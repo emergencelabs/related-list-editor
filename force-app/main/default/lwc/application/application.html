@@ -1,6 +1,20 @@
 <template>
-  <div if:false={listSelection} class="slds-box slds-theme_default">
-    <p>Please select your desired related list to edit.</p>
+  <div
+    if:false={listSelection}
+    class="slds-box slds-theme_shade slds-grid slds-gutters slds-grid_align-center slds-grid_vertical-align-center slds-m-around_none"
+  >
+    <lightning-icon
+      icon-name="utility:warning"
+      size="small"
+      title="Warning Icon"
+      variant="warning"
+    ></lightning-icon>
+    <p class="slds-var-m-left_medium">
+      <span class="slds-text-title_bold slds-show"
+        >Related List - Editor Component</span
+      >Please select your desired related list to edit on the right hand side of
+      the Lightning App Builder while editing this Page.
+    </p>
   </div>
 
   <template if:true={listSelection}>
