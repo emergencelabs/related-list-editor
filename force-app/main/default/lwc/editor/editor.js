@@ -937,6 +937,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return deleteChildRecord({ childObject });
   }
 
+  //NOTE: this has to delete the record and then refetch all because
+  // we have no idea which to record to *add* to the list in replace of the deleted on
   async requestDelete({ detail: { childObject } }) {
     this.loading = true;
     let title = `${childObject.Name} Successfully Deleted`;
@@ -944,12 +946,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
     let message = "";
     try {
       await this.deleteChildRecord(childObject);
-      this.records = await this.getChildRecords(this.buildQueryString());
-      this.newRecords = [...this.records];
+      await this.requestRefreshedRecords();
     } catch (e) {
       let pageError = e.body.pageErrors ? e.body.pageErrors[0] : null;
       message = pageError ? pageError.message : e.body.message;
-      //window.console.error("deletion error:", e);
       title = `Something went wrong deleting ${childObject.Name}`;
       variant = "error";
     }
@@ -973,11 +973,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
     }
   }
 
-  // TODO: is this can request more being handled properly? i dont think so, i think this and
-  // the initial setting of it cause one extra check to be completed
+  // TODO: convert to async function and attempt resue in column sort
   requestRefreshedRecords() {
     this.refreshingTable = true;
-    Promise.all([
+    return Promise.all([
       this.getRecordCount(this.buildCountQueryString()),
       this.getChildRecords(this.buildQueryString())
     ]).then(([count, records]) => {
