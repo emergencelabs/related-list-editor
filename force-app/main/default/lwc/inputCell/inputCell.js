@@ -60,7 +60,11 @@ export default class InputCell extends LightningElement {
 
   // 3 = NotSupported, 2 = Modal, 1 = Field,  0 = editable
   // FLS check for if the field can be updated by the current user
+  overrideDisable;
   get disableInputReason() {
+    if (this.overrideDisable) {
+      return 3;
+    }
     if (this.inputDetails && !this.inputDetails.supported) {
       return 2;
     }
@@ -428,9 +432,23 @@ export default class InputCell extends LightningElement {
   }
 
   connectedCallback() {
-    // window.console.log(JSON.stringify(this.fieldDetail, null, 2));
+    if (
+      this.referenceValue &&
+      !Object.keys(this.referenceValue).includes("Name")
+    ) {
+      this.overrideDisable = true;
+      this.latestReferenceValue = {
+        ...this.referenceValue,
+        Name: this.referenceValue[
+          Object.keys(this.referenceValue).filter((key) => key !== "Id")[0]
+        ]
+      };
+    }
 
     this.originalValue = this.value;
+    if (this.fieldDetail.dataType === "Reference") {
+      console.log(JSON.stringify(this.currentReferenceValue));
+    }
     this.modalValue = this.value;
     this.originalLookupValue = this.currentReferenceValue
       ? {
