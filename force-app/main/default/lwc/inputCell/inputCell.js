@@ -539,7 +539,6 @@ export default class InputCell extends LightningElement {
       case "Double": {
         let isCalculated = fieldDetail.calculated;
         let wholeNumberStep = fieldDetail.scale === 0;
-        console.log(JSON.parse(JSON.stringify(fieldDetail)));
         return {
           supported: true,
           component: "input",
