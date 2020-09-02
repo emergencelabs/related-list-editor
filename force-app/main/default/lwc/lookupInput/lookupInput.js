@@ -6,7 +6,7 @@ export default class LookupInput extends LightningElement {
   @api iconName;
   @api objectApiName;
   @api initialValue;
-
+  @api defaultEdit = false;
   @track currentValue;
 
   get value() {

@@ -9,7 +9,7 @@
     </targets>
     <targetConfigs>
         <targetConfig targets="lightning__RecordPage">
-            <property label="Related List" name="listSelection" type="String" datasource="apex://EditorPicklistController" required="true" />
+            <property label="Related List" name="listSelection" type="String" datasource="apex://EditorPicklistController" placeholder="Search for a related list..." description="The related list you select will use all the same columns the regular related list would use" />
             <supportedFormFactors>
                 <supportedFormFactor type="Large" />
                 <supportedFormFactor type="Small" />

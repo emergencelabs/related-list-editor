@@ -15,7 +15,7 @@ import deleteChildRecord from "@salesforce/apex/ChildRecordService.deleteChildRe
 // if a compound name field is in here and not that one then you can't edit inline?
 // also need to filter out owner and some consideration may apply for multi currency here?
 const IGNORED_REQUIRED_FIELDS = ["OwnerId"];
-
+const MIN_COLUMN_WIDTH = "90";
 export default class Editor extends NavigationMixin(LightningElement) {
   @api layoutMode;
   @api isStandalone = false;
@@ -29,6 +29,13 @@ export default class Editor extends NavigationMixin(LightningElement) {
 
   @track iconName;
   @track tableColumns;
+  get tileColumns() {
+    if (this.tableColumns) {
+      return this.tableColumns.filter(({ type }) => type !== "action");
+    }
+    return [];
+  }
+  MIN_COLUMN_WIDTH = MIN_COLUMN_WIDTH;
 
   @track loading = true;
 
@@ -47,7 +54,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   };
 
   get sharedContainerHeightStyle() {
-    if (this.loading || this.records.length) {
+    if (this.loading || this.records.length > 3) {
       return `min-height: 100px;`;
     }
     return ``;
@@ -198,7 +205,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   get tableContainerHeight() {
-    let height = `height: ${this.isStandalone ? "25" : "15"}rem`;
+    let height = `height: ${
+      this.isStandalone ? "calc(100vh - 250px)" : "24rem"
+    }`;
     if (this.totalRecordsCount < this.layoutModeLimit) {
       height = "height:100%;";
     }
@@ -309,9 +318,16 @@ export default class Editor extends NavigationMixin(LightningElement) {
   populateTableColumns(targetList) {
     // 1: Filter out all columns that the user does not have access to
     // 2: Map the columns into what the datatable needs
-    let containerWidth = this.template
-      .querySelector(".table-container")
-      .getBoundingClientRect().width;
+    // let containerWidth = this.template
+    //   .querySelector(".table-container")
+    //   .getBoundingClientRect().width;
+
+    /*     initialWidth: this.getColumnWidth(
+            containerWidth,
+            available.length,
+            fieldDetail.dataType
+          ),
+          */
 
     let columns = targetList.columns
       .filter(({ fieldApiName, lookupId }) => {
@@ -319,9 +335,14 @@ export default class Editor extends NavigationMixin(LightningElement) {
         if (fieldApiName.includes(".")) {
           normalizedApiName = lookupId.replace(".", "");
         }
-        return !!this.childFields[normalizedApiName];
+        let fielDetails = this.childFields[normalizedApiName];
+        if (fielDetails && fielDetails.dataType === "EncryptedString") {
+          return false;
+        }
+
+        return !!fielDetails;
       })
-      .map((col, _, available) => {
+      .map((col) => {
         let { fieldApiName, lookupId, label } = col;
         let normalizedApiName = fieldApiName;
         if (fieldApiName.includes(".")) {
@@ -352,11 +373,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
             defaultEdit: this.isStandalone || this.modalIsOpen,
             recordTypeId: { fieldName: "RecordTypeId" }
           },
-          initialWidth: this.getColumnWidth(
-            containerWidth,
-            available.length,
-            fieldDetail.dataType
-          ),
           hideDefaultActions: this.isStandalone || this.modalIsOpen,
           fieldName: normalizedApiName,
           fieldDetail,
@@ -385,15 +401,15 @@ export default class Editor extends NavigationMixin(LightningElement) {
           ]
         };
       });
-    if (this.isTableLayout) {
-      columns = [
-        ...columns,
-        {
-          type: "action",
-          typeAttributes: { rowActions: this.actions, menuAlignment: "auto" }
-        }
-      ];
-    }
+
+    columns = [
+      ...columns,
+      {
+        type: "action",
+        typeAttributes: { rowActions: this.actions, menuAlignment: "auto" }
+      }
+    ];
+
     return columns;
   }
 
@@ -496,7 +512,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
         if (fieldApiName.includes(".")) {
           normalizedApiName = lookupId.replace(".", "");
         }
-        return !!this.childFields[normalizedApiName];
+        let fielDetails = this.childFields[normalizedApiName];
+        if (fielDetails && fielDetails.dataType === "EncryptedString") {
+          return false;
+        }
+
+        return !!fielDetails;
       })
       .map((c) => c.fieldApiName)
       .join(", ")} FROM ${this.childObjectApiName} WHERE ${
@@ -600,13 +621,18 @@ export default class Editor extends NavigationMixin(LightningElement) {
         };
         window.console.log(JSON.stringify(errors, null, 2));
 
-        Object.keys(errors).forEach((id) => {
+        Object.keys(errors).forEach((id, index) => {
+          let errorKeys = Object.keys(errors[id]);
+          let fieldName = errorKeys[0];
+          let fieldDetails = this.childFields[fieldName];
+          let messagePrefix =
+            Number(fieldName) === index || !fieldDetails
+              ? "Error"
+              : fieldDetails.label;
           errorObj.rows[id] = {
-            title: `We found ${Object.keys(errors[id]).length} errors`,
-            messages: `${Object.keys(errors[id])[0]}: ${Object.values(
-              errors[id]
-            )}`,
-            fieldNames: Object.keys(errors[id])
+            title: `We found ${errorKeys.length} errors`,
+            messages: `${messagePrefix}: ${Object.values(errors[id])}`,
+            fieldNames: errorKeys
           };
         });
         this.errors = errorObj;
@@ -683,10 +709,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     if (modalTrigger) {
       this.resetColumnsEdit();
     }
-    window.console.log(
-      "resetfuncs",
-      JSON.parse(JSON.stringify(this.resetFuncs))
-    );
+
     return !this.hasErrors;
   }
 
@@ -715,12 +738,13 @@ export default class Editor extends NavigationMixin(LightningElement) {
     });
   }
 
-  async getNextRecords({ detail: { offset } }) {
+  async getNextRecords() {
     this.loading = true;
-    if (offset <= 2000) {
+    this.currentOffset += this.layoutModeLimit;
+    if (this.currentOffset <= 2000) {
       try {
         let nextRecords = await this.getChildRecords(
-          this.buildQueryString(offset)
+          this.buildQueryString(this.currentOffset)
         );
         this.canRequestMore = nextRecords.length === this.layoutModeLimit;
         this.records = [...this.records, ...nextRecords];
@@ -821,6 +845,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
 
   currentAction = null;
   actionTypeToFunc = {
+    new: {
+      func: this.newRecordModal,
+      args: []
+    },
     view: {
       func: this.navigate,
       args: []
@@ -853,8 +881,58 @@ export default class Editor extends NavigationMixin(LightningElement) {
         targetAction.func.apply(this, targetAction.args);
         targetAction.args = [];
       }
+      this.resetErrors();
     }
     this.confirmLoseChanges = false;
+  }
+
+  requestNewRecordModal() {
+    this.currentAction = "new";
+    if (this.hasUnsavedChanges) {
+      this.confirmLoseChanges = true;
+    } else {
+      let targetAction = this.actionTypeToFunc[this.currentAction];
+      targetAction.func.apply(this, targetAction.args);
+    }
+  }
+
+  newRecordModal() {
+    this.generateNewRecordPromise().then((refresh) => {
+      if (refresh) {
+        this.requestRefreshedRecords();
+      }
+    });
+  }
+
+  intervalId;
+  generateNewRecordPromise() {
+    return new Promise((resolve) => {
+      this[NavigationMixin.Navigate]({
+        type: "standard__objectPage",
+        attributes: {
+          objectApiName: this.childObjectApiName,
+          actionName: "new"
+        },
+        state: {
+          defaultFieldValues: `${this.relationshipField}=${this.recordId}`,
+          nooverride: "1",
+          // useRecordTypeCheck: "1",
+          navigationLocation: "LOOKUP"
+        }
+      });
+      if (this.layoutMode > 1) {
+        let originalUrl = window.location.href;
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this.intervalId = window.setInterval(() => {
+          if (window.location.href === originalUrl) {
+            resolve(true);
+            window.clearInterval(this.intervalId);
+          }
+        }, 1200);
+      } else {
+        resolve(false);
+      }
+    });
   }
 
   linkNavigate({ detail: { rowId } }) {
@@ -867,13 +945,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
       targetAction.func.apply(this, targetAction.args);
     }
   }
-
-  // TODO: set this up
-  // also need to get a confirmation modal for if any of the options and
-  // has unsaved changes
-  // could create a map of actiontype to function so that
-  // when this has to pop the modal we can just store the actionType
-  // and then once chosen either clear type and if confirm call actionType func
 
   handleRowAction(event) {
     const { value } = event.detail.action;
@@ -890,16 +961,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
       let targetAction = this.actionTypeToFunc[this.currentAction];
       targetAction.func.apply(this, targetAction.args);
     }
-
-    // window.console.log(JSON.parse(JSON.stringify(action)));
-    // window.console.log(JSON.parse(JSON.stringify(row)));
   }
 
-  // TODO: need to potentially modify the layoutModeLimit as well as the table container height
-  // if standalone desktop
   customSortInfo = null;
   updateColumnSorting(event) {
-    // TODO: this same concept will apply for clicking new
     if (this.hasUnsavedChanges) {
       this.currentAction = "sort";
       this.actionTypeToFunc.sort.args = [event];
@@ -1000,6 +1065,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return deleteChildRecord({ childObject });
   }
 
+  //NOTE: this has to delete the record and then refetch all because
+  // we have no idea which to record to *add* to the list in replace of the deleted on
   async requestDelete({ detail: { childObject } }) {
     this.loading = true;
     let title = `${childObject.Name} Successfully Deleted`;
@@ -1007,12 +1074,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
     let message = "";
     try {
       await this.deleteChildRecord(childObject);
-      this.records = await this.getChildRecords(this.buildQueryString());
-      this.newRecords = [...this.records];
+      await this.requestRefreshedRecords();
     } catch (e) {
       let pageError = e.body.pageErrors ? e.body.pageErrors[0] : null;
       message = pageError ? pageError.message : e.body.message;
-      //window.console.error("deletion error:", e);
       title = `Something went wrong deleting ${childObject.Name}`;
       variant = "error";
     }
@@ -1036,20 +1101,20 @@ export default class Editor extends NavigationMixin(LightningElement) {
     }
   }
 
-  // TODO: is this can request more being handled properly? i dont think so, i think this and
-  // the initial setting of it cause one extra check to be completed
+  // TODO: convert to async function and attempt resue in column sort
   requestRefreshedRecords() {
     this.refreshingTable = true;
-    Promise.all([
+    return Promise.all([
       this.getRecordCount(this.buildCountQueryString()),
       this.getChildRecords(this.buildQueryString())
     ]).then(([count, records]) => {
+      this.currentOffset = 0;
       this.totalRecordsCount = count;
       this.refreshingTable = false;
       this.records = records;
       this.newRecords = [...this.records];
 
-      this.canRequestMore = this.records.length === this.layoutModeLimit;
+      this.canRequestMore = records.length === this.layoutModeLimit;
       let table = this.template.querySelector("c-table");
       if (table) {
         table.findElement().scrollTop = 0;
@@ -1065,12 +1130,16 @@ export default class Editor extends NavigationMixin(LightningElement) {
         let normalizedApiName = fieldApiName.includes(".")
           ? lookupId.replace(".", "")
           : fieldApiName;
+        let fieldDetail = this.childFields[normalizedApiName] || {};
 
         let {
           relationshipName,
           referenceToInfos: [ref]
-        } = this.childFields[normalizedApiName];
+        } = fieldDetail;
         if (relationshipName) {
+          if (relationshipName === "Owner") {
+            return Promise.resolve({ [normalizedApiName]: "standard:user" });
+          }
           return this.fetchIcon(ref.apiName).then((iconName) => {
             return { [normalizedApiName]: iconName };
           });
@@ -1095,6 +1164,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
     this.canRequestMore = this.records.length === this.layoutModeLimit;
 
     this.loading = false;
+  }
+
+  disconnectedCallback() {
+    if (this.intervalId) {
+      window.clearInterval(this.intervalId);
+    }
   }
 
   getColumnWidth(totalWidth, columnCount, dataType) {

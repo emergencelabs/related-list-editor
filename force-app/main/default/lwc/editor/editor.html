@@ -19,12 +19,12 @@
     relationship-field={relationshipField}
     record-id={recordId}
     count={totalRecordsCountLabel}
-    require-new-modal={requireNewModal}
     allow-edit-modal={allowEditModal}
     reason-for-new-modal={reasonForNewModal}
     sort-string={sortedByString}
     ondisplaymodal={launchModal}
     onrefreshrecords={refreshRecords}
+    onrequestnew={requestNewRecordModal}
   ></c-header>
   <div
     style={sharedContainerHeightStyle}
@@ -52,18 +52,14 @@
         child-object-api-name={childObjectApiName}
         relationship-field={relationshipField}
         record-id={recordId}
-        columns={tableColumns}
+        columns={tileColumns}
         onrequestdelete={requestDelete}
         is-standalone={isStandalone}
         onviewmore={getNextRecords}
         can-request-more={canRequestMore}
         layout-mode-limit={layoutModeLimit}
       ></c-tile-list>
-      <div
-        if:true={isTableLayout}
-        class="slds-card"
-        style={tableContainerHeight}
-      >
+      <div if:true={isTableLayout} style={tableContainerHeight}>
         <div class="slds-is-relative">
           <div if:true={refreshingTable}>
             <lightning-spinner
@@ -91,9 +87,9 @@
           show-row-number-column
           errors={errors}
           no-scroll={noScroll}
+          min-column-width={MIN_COLUMN_WIDTH}
         >
         </c-table>
-        <!-- <lightning-datatable></lightning-datatable> -->
         <div style="position: relative;" if:true={canRequestMore}>
           <div
             style="
@@ -115,9 +111,7 @@
       </div>
     </template>
   </div>
-  <!-- TODO: need to add the 'new' button to the modal here
-  if you cannot create them inline
--->
+
   <c-slotted-modal
     if:true={modalIsOpen}
     modal-title={listLabel}
@@ -162,6 +156,7 @@
           show-row-number-column
           errors={errors}
           no-scroll={noScroll}
+          min-column-width={MIN_COLUMN_WIDTH}
         >
         </c-table>
       </div>

@@ -1,5 +1,5 @@
 <template>
-  <div style="padding: 5px 10px;" class={containerClasses}>
+  <div class={containerClasses} style={containerCursorStyle}>
     <template if:false={editing}>
       <div
         style="
@@ -13,7 +13,7 @@
             if:true={link}
             href={link}
             onclick={navigateToLookup}
-            style="overflow: hidden;"
+            style="overflow: hidden; text-overflow: ellipsis;"
             >{currentReferenceValue.Name}</a
           >
           <c-formatted-tile-value
@@ -21,24 +21,34 @@
             value={innerValue}
             field-type={fieldDetail.dataType}
             is-rich-text={fieldDetail.htmlFormatted}
-            style="flex-grow: 1; overflow: scroll; max-height: 50px;"
+            precision={fieldDetail.precision}
+            scale={fieldDetail.scale}
+            style="
+              flex-grow: 1;
+              overflow: hidden;
+              max-height: 55px;
+              text-overflow: ellipsis;
+              width: 100%;
+            "
           ></c-formatted-tile-value>
         </template>
         <template if:true={isNameField}>
           <a
             href={nameLink}
             onclick={navigateToRecord}
-            style="overflow: hidden;"
+            style="overflow: hidden; text-overflow: ellipsis;"
             >{value}</a
           >
         </template>
         <!-- <span>{value}</span> -->
-        <lightning-button-icon
-          variant="bare"
-          icon-name={accessIconName}
-          if:true={isHovering}
-          onclick={inlineEdit}
-        ></lightning-button-icon>
+        <div style={hoverIconStyle}>
+          <lightning-button-icon
+            variant="bare"
+            icon-name={accessIconName}
+            if:true={isHovering}
+            onclick={inlineEdit}
+          ></lightning-button-icon>
+        </div>
       </div>
     </template>
     <template if:true={editing}>
@@ -61,7 +71,7 @@
         onfocus={setKeyOveride}
         onblur={removeKeyOveride}
         autocomplete="off"
-        style="min-height: calc(var(--lwc-heightInput, 1.875rem) + (1px * 2));"
+        message-when-step-mismatch="Too many digits after the decimal"
       ></lightning-input>
       <button
         if:true={isModalInput}
@@ -73,7 +83,7 @@
           value={modalValue}
           field-type={fieldDetail.dataType}
           is-rich-text={fieldDetail.htmlFormatted}
-          style="flex-grow: 1; overflow: scroll; max-height: 50px;"
+          style="flex-grow: 1; overflow: hidden; max-height: 55px; width: 100%;"
         ></c-formatted-tile-value>
 
         <lightning-button-icon
@@ -92,12 +102,16 @@
           onselection={changeInputValue}
         ></c-picklist-input>
       </div>
-      <div if:true={isLookupInput}>
+      <div
+        if:true={isLookupInput}
+        style="min-height: calc(var(--lwc-heightInput, 1.875rem) + (1px * 2));"
+      >
         <c-lookup-input
           initial-value={lookupValue}
           icon-name={referenceIcon}
           object-api-name={lookupObjectApiName}
           onselection={changeInputValue}
+          default-edit={defaultEdit}
         ></c-lookup-input>
       </div>
       <!--

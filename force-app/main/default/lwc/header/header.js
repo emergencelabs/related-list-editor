@@ -1,7 +1,6 @@
 import { LightningElement, api } from "lwc";
+import getNameForId from "@salesforce/apex/NameService.getNameForId";
 import { NavigationMixin } from "lightning/navigation";
-
-// TODO: need to get the new modal not to route to the new record!
 
 export default class Header extends NavigationMixin(LightningElement) {
   @api iconName;
@@ -13,15 +12,9 @@ export default class Header extends NavigationMixin(LightningElement) {
   @api count = "0";
 
   @api allowEditModal = false;
-  @api requireNewModal = false;
   @api reasonForNewModal;
 
   @api sortString = "";
-
-  get zeroCount() {
-    return this.count == 0;
-  }
-
   get metaString() {
     if (this.sortString) {
       return `${this.count} item${this.count !== 1 ? "s" : ""} • ${
@@ -31,54 +24,14 @@ export default class Header extends NavigationMixin(LightningElement) {
     return ``;
   }
 
-  newRecord() {
-    this[NavigationMixin.Navigate]({
-      type: "standard__objectPage",
-      attributes: {
-        objectApiName: this.childObjectApiName,
-        actionName: "new"
-      },
-      state: {
-        defaultFieldValues: `${this.relationshipField}=${this.recordId}`,
-        nooverride: "1",
-        // useRecordTypeCheck: "1",
-        navigationLocation: "LOOKUP"
-      }
-    });
-    // this.generateNewRecordPromise().then(() => {
-    //   // TODO: seems as if the best we can do is refresh the
-    //   // records even if they dont create a new one
-    //   // this would have to replace the entire records, resetting the offset
-    //   // just as a sort would - which would be kind of annoying if
-    //   window.console.log("REFRESH RECORDS HERE");
-    // });
+  name;
+
+  get showBackButton() {
+    return !this.allowEditModal && this.recordId;
   }
 
-  intervalId;
-  generateNewRecordPromise() {
-    return new Promise((resolve) => {
-      this[NavigationMixin.Navigate]({
-        type: "standard__objectPage",
-        attributes: {
-          objectApiName: this.childObjectApiName,
-          actionName: "new"
-        },
-        state: {
-          defaultFieldValues: `${this.relationshipField}=${this.recordId}`,
-          nooverride: "1",
-          // useRecordTypeCheck: "1",
-          navigationLocation: "LOOKUP"
-        }
-      });
-      let originalUrl = window.location.href;
-      // eslint-disable-next-line @lwc/lwc/no-async-operation
-      this.intervalId = window.setInterval(() => {
-        if (window.location.href === originalUrl) {
-          resolve();
-          window.clearInterval(this.intervalId);
-        }
-      }, 1000);
-    });
+  newRecord() {
+    this.dispatchEvent(new CustomEvent("requestnew"));
   }
 
   refreshRecords() {
@@ -87,6 +40,17 @@ export default class Header extends NavigationMixin(LightningElement) {
 
   displayEditModal() {
     this.dispatchEvent(new CustomEvent("displaymodal"));
+  }
+
+  back(e) {
+    e.preventDefault();
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId: this.recordId,
+        actionName: "view"
+      }
+    });
   }
 
   viewAll(event) {
@@ -105,9 +69,21 @@ export default class Header extends NavigationMixin(LightningElement) {
     });
   }
 
-  disconnectedCallback() {
-    if (this.intervalId) {
-      window.clearInterval(this.intervalId);
+  getName() {
+    return getNameForId({
+      recordId: this.recordId,
+      objectApiName: this.objectApiName
+    });
+  }
+
+  async connectedCallback() {
+    if (this.showBackButton) {
+      try {
+        this.name = await this.getName();
+      } catch (e) {
+        console.error(e);
+        this.name = this.objectApiName;
+      }
     }
   }
 }

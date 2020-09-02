@@ -1,7 +1,8 @@
 {
   "orgName": "Emergence Labs",
   "edition": "Professional",
-  "features": [],
+  "features": ["AuthorApex", "DebugApex"],
+  "hasSampleData": true,
   "settings": {
     "lightningExperienceSettings": {
       "enableS1DesktopEnabled": true

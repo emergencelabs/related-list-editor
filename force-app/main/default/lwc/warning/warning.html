@@ -2,7 +2,7 @@
   <div
     class="slds-box slds-theme_shade slds-grid slds-gutters slds-grid_align-center slds-grid_vertical-align-center slds-m-around_none"
   >
-    <template if:false={cantAccess}>
+    <template if:false={hasError}>
       <lightning-icon
         icon-name="utility:warning"
         size="small"
@@ -14,7 +14,7 @@
         current page layout.
       </p>
     </template>
-    <template if:true={cantAccess}>
+    <template if:true={hasError}>
       <lightning-icon
         icon-name="utility:error"
         size="small"
@@ -22,8 +22,7 @@
         variant="error"
       ></lightning-icon>
       <p class="slds-m-left_medium">
-        {listWarningPreText} is not accessible to the current User. Please
-        consult your System Administrator.
+        {listWarningPreText} {errorText}
       </p>
     </template>
   </div>

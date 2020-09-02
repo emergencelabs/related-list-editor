@@ -15,6 +15,8 @@ export default class Lookup extends LightningElement {
   @api errors = [];
   @api scrollAfterNItems;
   @api customKey;
+  @api fixedResultsLocation = false;
+  @api defaultEdit = false;
 
   // Template properties
   searchResultsLocalState = [];
@@ -209,6 +211,9 @@ export default class Lookup extends LightningElement {
       return;
     }
     this.updateSearchTerm(event.target.value);
+    // this.template
+    //   .querySelector(".slds-listbox__item")
+    //   .scrollIntoView({ behavior: "smooth", block: "end" });
   }
 
   handleKeyDown(event) {
@@ -273,6 +278,7 @@ export default class Lookup extends LightningElement {
     this.template.querySelector("input").focus();
   }
 
+  hasSetInitialListBoxStyle = false;
   handleFocus() {
     this.setKeyOveride();
     // Prevent action if selection is not allowed
@@ -281,6 +287,17 @@ export default class Lookup extends LightningElement {
     }
     this._hasFocus = true;
     this._focusedResultIndex = null;
+    if (!this.hasSetInitialListBoxStyle && this.fixedResultsLocation) {
+      let inputEl = this.template.querySelector("input");
+      if (inputEl) {
+        let { bottom, left, width } = inputEl.getBoundingClientRect();
+        this.listboxStyle = `position:fixed;z-index:9003;right:auto;left:${
+          this.defaultEdit ? left : left + width / 2
+        }px;top:${bottom}px`;
+        window.addEventListener("scroll", this.scrollHandler);
+        this.hasSetInitialListBoxStyle = true;
+      }
+    }
   }
 
   handleBlur() {
@@ -447,5 +464,21 @@ export default class Lookup extends LightningElement {
   }
   removeKeyOveride() {
     this.removeEventListener("keydown", this.arrowKeyPress);
+  }
+
+  listboxStyle = ``;
+
+  scrollHandler = () => {
+    let inputEl = this.template.querySelector("input");
+    if (inputEl) {
+      let { bottom, left, width } = inputEl.getBoundingClientRect();
+      this.listboxStyle = `position:fixed;z-index:9003;right:auto;left:${
+        this.defaultEdit ? left : left + width / 2
+      }px;top:${bottom}px`;
+    }
+  };
+
+  disconnectedCallback() {
+    window.removeEventListener("scroll", this.scrollHandler);
   }
 }

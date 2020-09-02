@@ -37,7 +37,7 @@ export default class Table extends LightningDatatable {
     super.connectedCallback();
     // a promise but nothing to do once resolved
     loadStyle(this, CellStyling).then(() => {
-      this.findElement().style.paddingBottom = "45px";
+      //this.findElement().style.paddingBottom = "45px";
       // if (this.noScroll) {
       //   // window.console.log("no scroll");
       //   // this.findElement().style.overflow = "unset";

@@ -2,7 +2,7 @@
   "orgName": "Emergence Labs",
   "edition": "Enterprise",
   "features": [],
-  "hasSampleData": "true",
+  "hasSampleData": true,
   "settings": {
     "lightningExperienceSettings": {
       "enableS1DesktopEnabled": true

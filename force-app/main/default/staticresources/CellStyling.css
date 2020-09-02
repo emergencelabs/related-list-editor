@@ -2,8 +2,17 @@ lightning-primitive-cell-factory > div.slds-truncate {
   overflow: unset;
 }
 
+div[data-dropdown-element="true"]{
+  position: fixed !important;
+  max-width: 200px;
+}
+
 td.slds-has-error > lightning-primitive-cell-factory > div.slds-truncate {
   overflow: unset;
   border: 2px solid var(--lwc-colorBorderError,rgb(194, 57, 52));
+}
+
+c-modal-input  textarea {
+  resize: both !important;
 }
 

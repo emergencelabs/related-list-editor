@@ -1,6 +1,20 @@
 <template>
-  <div if:false={listSelection} class="slds-box slds-theme_default">
-    <p>Please select your desired related list to edit.</p>
+  <div
+    if:false={listSelection}
+    class="slds-box slds-theme_shade slds-grid slds-gutters slds-grid_align-center slds-grid_vertical-align-center slds-m-around_none"
+  >
+    <lightning-icon
+      icon-name="utility:warning"
+      size="small"
+      title="Warning Icon"
+      variant="warning"
+    ></lightning-icon>
+    <p class="slds-var-m-left_medium">
+      <span class="slds-text-title_bold slds-show"
+        >Related List - Editor Component</span
+      >Please select your desired related list to edit on the right hand side of
+      the Lightning App Builder while editing this Page.
+    </p>
   </div>
 
   <template if:true={listSelection}>
@@ -13,22 +27,25 @@
       style="display: none;"
     ></iframe>
     <template if:false={loading}>
-      <c-editor
-        if:true={canRenderEditor}
-        layout-mode={layoutMode}
-        is-standalone={isStandalone}
-        record-id={recordId}
-        object-api-name={objectApiName}
-        related-list-info={relatedListInfo}
-        child-fields={childObjectInfo.data.fields}
-        child-record-type-info={childObjectInfo.data.recordTypeInfos}
-        child-object-label={childObjectInfo.data.label}
-      ></c-editor>
-      <c-warning
-        if:false={relatedListInfo}
-        list-name={listNameText}
-        cant-access={objectInaccessible}
-      ></c-warning>
+      <article class="slds-card slds-card_boundary">
+        <c-editor
+          if:true={canRenderEditor}
+          layout-mode={layoutMode}
+          is-standalone={isStandalone}
+          record-id={recordId}
+          object-api-name={objectApiName}
+          related-list-info={relatedListInfo}
+          child-fields={childObjectInfo.data.fields}
+          child-record-type-info={childObjectInfo.data.recordTypeInfos}
+          child-object-label={childObjectInfo.data.label}
+        ></c-editor>
+        <c-warning
+          if:false={relatedListInfo}
+          list-name={listNameText}
+          has-error={hasChildObjectError}
+          error-code={childObjectErrorCode}
+        ></c-warning>
+      </article>
     </template>
   </template>
 </template>

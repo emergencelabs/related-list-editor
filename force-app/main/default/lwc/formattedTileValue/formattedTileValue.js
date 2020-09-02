@@ -13,6 +13,8 @@ export default class FormattedTileValue extends LightningElement {
   @api fieldType;
   @api value;
   @api isRichText = false;
+  @api precision;
+  @api scale;
 
   details = {};
 
@@ -36,6 +38,8 @@ export default class FormattedTileValue extends LightningElement {
       case "Double":
       case "Int": {
         this.details.format = "decimal";
+        this.details.precision = this.precision;
+        this.details.scale = this.scale;
         return formattedNumber;
       }
       case "Email": {

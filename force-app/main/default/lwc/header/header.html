@@ -7,7 +7,19 @@
       class="slds-page-header__row slds-grid slds-grid_align-center slds-grid_vertical-align-center"
     >
       <div class="slds-page-header__col-title">
-        <div class="slds-media slds-media--center">
+        <nav
+          role="navigation"
+          aria-label="Breadcrumbs"
+          class="slds-var-m-bottom_small"
+          if:true={showBackButton}
+        >
+          <ol class="slds-breadcrumb slds-list_horizontal slds-wrap">
+            <li class="slds-breadcrumb__item">
+              <a href="#" onclick={back}>{name}</a>
+            </li>
+          </ol>
+        </nav>
+        <div class="slds-media slds-media_center">
           <div class="slds-media__figure">
             <lightning-icon icon-name={iconName} size="small"></lightning-icon>
           </div>
@@ -20,11 +32,11 @@
                     onclick={viewAll}
                     class="slds-card__header-link baseCard__header-title-container"
                     ><span
-                      class="slds-truncate slds-m-right--xx-small"
+                      class="slds-truncate slds-var-m-right_xx-small"
                       title={listName}
                       >{listLabel}</span
                     ><span
-                      class="slds-shrink-none slds-m-right--xx-small"
+                      class="slds-shrink-none slds-var-m-right_xx-small"
                       title={count}
                       >({count})</span
                     >
@@ -34,11 +46,11 @@
                   <span
                     class="slds-card__header-link baseCard__header-title-container"
                     ><span
-                      class="slds-truncate slds-m-right--xx-small"
+                      class="slds-truncate slds-var-m-right_xx-small"
                       title={listName}
                       >{listLabel}</span
                     ><span
-                      class="slds-shrink-none slds-m-right--xx-small"
+                      class="slds-shrink-none slds-var-m-right_xx-small"
                       title={count}
                       >({count})</span
                     >

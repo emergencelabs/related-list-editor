@@ -13,12 +13,15 @@
     "lint:aura": "eslint **/aura/**",
     "lint:lwc": "eslint **/lwc/**",
     "test": "npm run test:unit",
+    "test:apex": "sfdx force:apex:test:run",
+    "test:apex:report": "sfdx force:apex:test:report -c",
     "test:unit": "sfdx-lwc-jest",
     "test:unit:watch": "sfdx-lwc-jest --watch",
     "test:unit:debug": "sfdx-lwc-jest --debug",
     "test:unit:coverage": "sfdx-lwc-jest --coverage",
     "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
-    "prettier:verify": "prettier --list-different \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\""
+    "prettier:verify": "prettier --list-different \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
+    "create:package": "sfdx force:package:version:create -c -k 'Emergence' -p RLETest2 -w 5"
   },
   "devDependencies": {
     "@prettier/plugin-xml": "^0.7.2",

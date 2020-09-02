@@ -9,6 +9,7 @@ public with sharing class ChildRecordService {
     return Database.query(sanitizedQueryString);
   }
 
+  // TODO: throw a check in here for object access just to be certain (would need to handle exception though it shuold never throw?)
   @AuraEnabled
   public static Integer getCount(String queryString) {
     String sanitizedQueryString = queryString.escapeHtml4()
@@ -48,17 +49,15 @@ public with sharing class ChildRecordService {
             String fieldString = '';
             if (err.getFields().size() > 0) {
               for (String s : err.getFields()) {
-                // TODO: when could this be more than one, dependent fields?
-                // really needto look into that and then adjust this to format string
-                // there's a bug here where custom fields dont come back with __c or the namespace
                 fieldString += s;
                 System.debug(err.getFields());
               }
             } else {
               fieldString = String.valueOf(i);
             }
-            errorMap.get(targetRecordId).put(fieldString, err.getMessage());
-            // System.debug(err.getStatusCode() + ': ' + err.getMessage());
+            errorMap.get(targetRecordId)
+              .put(fieldString, err.getStatusCode() + ': ' + err.getMessage());
+
             // System.debug('fields that affected this error: ' + err.getFields());
           }
         }

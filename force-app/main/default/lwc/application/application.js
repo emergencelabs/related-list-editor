@@ -32,8 +32,17 @@ export default class Application extends LightningElement {
     return this.relatedListInfo && this.childObjectInfo.data;
   }
 
-  get objectInaccessible() {
+  get hasChildObjectError() {
+    if (this.childObjectInfo.error) {
+      window.console.error(this.childObjectInfo.error);
+    }
     return !!this.childObjectInfo.error;
+  }
+  get childObjectErrorCode() {
+    if (this.childObjectInfo && this.childObjectInfo.error) {
+      return this.childObjectInfo.error.body.errorCode;
+    }
+    return null;
   }
 
   get layoutMode() {
@@ -111,15 +120,22 @@ export default class Application extends LightningElement {
     return null;
   }
 
+  disconnectedCallback() {
+    window.removeEventListener("message", this.listener);
+  }
+  listener;
+  // TODO: why does the listener execute so many times?
+  // i can remove the listener once i get the answer i want
+  // but then it won't be there the next time
   async connectedCallback() {
-    this.recordTypeId = await this.findRecordTypeId();
-    window.addEventListener("message", ({ origin, data: apiResponse }) => {
+    this.listener = ({ origin, data: apiResponse = {} }) => {
       if (
         (origin === `${this.urlBase}--rle.visualforce.com` ||
           origin.includes(`${this.urlBase}--rle`)) &&
-        this.listSelection
+        this.listSelection &&
+        apiResponse.object === this.objectApiName
       ) {
-        this.relatedListInfo = apiResponse.relatedLists.find(
+        this.relatedListInfo = apiResponse.data.relatedLists.find(
           (rli) =>
             rli.sobject === this.parsedListDetails.childObject &&
             rli.field === this.parsedListDetails.relationshipField
@@ -127,6 +143,8 @@ export default class Application extends LightningElement {
 
         this.loading = false;
       }
-    });
+    };
+    this.recordTypeId = await this.findRecordTypeId();
+    window.addEventListener("message", this.listener);
   }
 }

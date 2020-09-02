@@ -60,7 +60,11 @@ export default class InputCell extends LightningElement {
 
   // 3 = NotSupported, 2 = Modal, 1 = Field,  0 = editable
   // FLS check for if the field can be updated by the current user
+  overrideDisable;
   get disableInputReason() {
+    if (this.overrideDisable) {
+      return 3;
+    }
     if (this.inputDetails && !this.inputDetails.supported) {
       return 2;
     }
@@ -78,6 +82,11 @@ export default class InputCell extends LightningElement {
   // TODO: consider set to be modal icon for modal type cells
   get accessIconName() {
     return this.disableInputReason >= 1 ? "utility:lock" : "utility:edit";
+  }
+  get hoverIconStyle() {
+    return this.disableInputReason >= 1
+      ? "pointer-events: none;cursor:not-allowed"
+      : "";
   }
 
   @track latestReferenceValue;
@@ -132,9 +141,9 @@ export default class InputCell extends LightningElement {
     );
   }
 
-  @track inlinedValue = null;
+  @track inlinedValue;
   get innerValue() {
-    if (this.inlinedValue !== null) return this.inlinedValue;
+    if (this.inlinedValue !== undefined) return this.inlinedValue;
     return this.value;
   }
 
@@ -157,7 +166,8 @@ export default class InputCell extends LightningElement {
 
   get lookupObjectApiName() {
     if (this.fieldDetail.referenceToInfos) {
-      return this.fieldDetail.referenceToInfos[0].apiName;
+      let name = this.fieldDetail.referenceToInfos[0].apiName;
+      return name === "Group" ? "User" : name;
     }
     return null;
   }
@@ -219,6 +229,7 @@ export default class InputCell extends LightningElement {
         reset: this.resetInputValue
       }
     };
+
     if (this.isReference) {
       let hasOriginal = !!this.originalLookupValue;
       let hasNew = !!value.Id;
@@ -235,7 +246,7 @@ export default class InputCell extends LightningElement {
         this.setContainerClasses();
         eventDetail.detail.isChanged = false;
       }
-    } else if (value != this.value && !(this.isBlank && value === "")) {
+    } else if (value != this.originalValue && !(this.isBlank && value === "")) {
       this.setContainerClasses("slds-is-edited");
     } else {
       this.setContainerClasses();
@@ -246,9 +257,15 @@ export default class InputCell extends LightningElement {
 
   setContainerClasses(append) {
     this.containerClasses = `slds-cell-edit ${
-      !this.isReference && !this.isPicklistInput ? "slds-truncate" : ""
-    } ${this.isRequired && this.editing ? "slds-grid" : ""} ${
-      append ? append : ""
+      this.isRequired && this.editing ? "slds-grid" : ""
+    } ${append ? append : ""}`;
+  }
+
+  get containerCursorStyle() {
+    return `${
+      this.disableInput || this.editing
+        ? "padding: 5px 10px;min-height: calc(var(--lwc-heightInput, 1.875rem) + (1px * 2));"
+        : "padding: 5px 10px;min-height: calc(var(--lwc-heightInput, 1.875rem) + (1px * 2));cursor:pointer"
     }`;
   }
 
@@ -286,7 +303,7 @@ export default class InputCell extends LightningElement {
     let input = this.template.querySelector(
       this.componentToSelector[this.inputDetails.component]
     );
-    this.inlinedValue = null;
+    this.inlinedValue = undefined;
 
     if (!stylingOnly) {
       if (this.inputDetails.component === "reference") {
@@ -339,6 +356,42 @@ export default class InputCell extends LightningElement {
       }
     }
     this.setContainerClasses();
+    window.removeEventListener("mousedown", this.handler);
+  };
+
+  handler = (e) => {
+    if (!e._isInTemplate) {
+      let isValid = true;
+      let input = this.template.querySelector("lightning-input");
+      if (input) {
+        isValid = input.checkValidity();
+      }
+      if (this.editing && isValid) {
+        if (!this.isModalInput) {
+          let value = this.getValueFromInput();
+          if (this.isLookupInput) {
+            this.inlinedValue = value.title;
+            this.latestReferenceValue = { Id: value.id, Name: value.title };
+          } else {
+            this.inlinedValue = value;
+          }
+        }
+        this.editing = false;
+        this.setContainerClasses(
+          this.containerClasses.includes("slds-is-edited")
+            ? "slds-is-edited"
+            : ""
+        );
+        window.removeEventListener("mousedown", this.handler);
+        this.template.removeEventListener("mousedown", this.templateHandler);
+      }
+    }
+  };
+
+  templateHandler = (e) => {
+    if (this.editing) {
+      e._isInTemplate = true;
+    }
   };
 
   inlineEdit = () => {
@@ -351,36 +404,8 @@ export default class InputCell extends LightningElement {
         this.launchModalEdit();
       }
 
-      let handler = () => {
-        let isValid = true;
-        let input = this.template.querySelector("lightning-input");
-        if (input) {
-          isValid = input.checkValidity();
-        }
-        if (this.editing && isValid) {
-          this.editing = false;
-
-          if (!this.isModalInput) {
-            let value = this.getValueFromInput();
-            if (this.isLookupInput) {
-              this.inlinedValue = value.title;
-              this.latestReferenceValue = { Id: value.id, Name: value.title };
-            } else {
-              this.inlinedValue = value;
-            }
-          }
-        }
-      };
-      this.template.addEventListener("mousedown", (e) => {
-        if (this.editing) {
-          let inputEl = this.template.querySelector("lightning-input");
-          if (inputEl) {
-            inputEl.focus();
-          }
-          e.stopPropagation();
-        }
-      });
-      window.addEventListener("mousedown", handler);
+      this.template.addEventListener("mousedown", this.templateHandler);
+      window.addEventListener("mousedown", this.handler);
     }
   };
 
@@ -393,7 +418,7 @@ export default class InputCell extends LightningElement {
     } else if (this.isPicklistInput || this.isLookupInput) {
       return cmp.getValue();
     }
-
+    cmp.blur();
     return cmp.value;
   }
 
@@ -407,9 +432,21 @@ export default class InputCell extends LightningElement {
   }
 
   connectedCallback() {
-    // window.console.log(JSON.stringify(this.fieldDetail, null, 2));
+    if (
+      this.referenceValue &&
+      !Object.keys(this.referenceValue).includes("Name")
+    ) {
+      this.overrideDisable = true;
+      this.latestReferenceValue = {
+        ...this.referenceValue,
+        Name: this.referenceValue[
+          Object.keys(this.referenceValue).filter((key) => key !== "Id")[0]
+        ]
+      };
+    }
 
     this.originalValue = this.value;
+
     this.modalValue = this.value;
     this.originalLookupValue = this.currentReferenceValue
       ? {
@@ -440,7 +477,7 @@ export default class InputCell extends LightningElement {
   //need to add all the bad value/message props to these return objects
   // this needs to account for display values as well in likely the same manner as tile does
   fieldToInput(fieldDetail) {
-    if (fieldDetail.controllerName || fieldDetail.compoundComponentName) {
+    if (fieldDetail.controllerName) {
       return {
         supported: false
       };
@@ -523,13 +560,14 @@ export default class InputCell extends LightningElement {
           component: "input",
           componentDetails: {
             type: "number",
+
             formatter: "",
             step:
               isCalculated || wholeNumberStep
                 ? undefined
                 : "0." + "0".repeat(fieldDetail.scale - 1) + "1",
-            max:
-              "1" + "0".repeat(fieldDetail.precision - (fieldDetail.scale + 1)),
+
+            max: String(Number("1" + "0".repeat(fieldDetail.precision)) - 1),
             required: fieldDetail.required
           }
         };
@@ -541,7 +579,7 @@ export default class InputCell extends LightningElement {
           componentDetails: {
             type: "number",
             formatter: "",
-            max: "1" + "0".repeat(fieldDetail.precision - 1),
+            max: String(Number("1" + "0".repeat(fieldDetail.precision)) - 1),
             required: fieldDetail.required
           }
         };

@@ -19,16 +19,16 @@
   <!-- Add a "change" handler to handle all changes to the "v.pageReference" value -->
   <aura:handler name="change" value="{!v.pageReference}" action="{!c.reInit}" />
   <div>
-    <aura:renderIf isTrue="{!v.showBackButton}">
+    <!-- <aura:renderIf isTrue="{!v.showBackButton}">
       <lightning:button
-        variant="inverse"
+        variant="base"
         label="{! 'Back To ' + v.parentObject}"
         iconName="utility:chevronleft"
         iconPosition="left"
         onclick="{!c.backToRecord}"
-        class="slds-m-bottom_small"
+        class="slds-has-bottom-magnet slds-has-top-magnet"
       />
-    </aura:renderIf>
+    </aura:renderIf> -->
 
     <c:errorBoundary
       flexipageRegionWidth="{!v.width}"
