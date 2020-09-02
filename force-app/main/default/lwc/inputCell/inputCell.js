@@ -446,9 +446,7 @@ export default class InputCell extends LightningElement {
     }
 
     this.originalValue = this.value;
-    if (this.fieldDetail.dataType === "Reference") {
-      console.log(JSON.stringify(this.currentReferenceValue));
-    }
+
     this.modalValue = this.value;
     this.originalLookupValue = this.currentReferenceValue
       ? {

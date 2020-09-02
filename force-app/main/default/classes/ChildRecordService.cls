@@ -9,6 +9,7 @@ public with sharing class ChildRecordService {
     return Database.query(sanitizedQueryString);
   }
 
+  // TODO: throw a check in here for object access just to be certain (would need to handle exception though it shuold never throw?)
   @AuraEnabled
   public static Integer getCount(String queryString) {
     String sanitizedQueryString = queryString.escapeHtml4()
