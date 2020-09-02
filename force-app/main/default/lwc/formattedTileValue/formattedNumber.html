@@ -2,5 +2,10 @@
   <lightning-formatted-number
     value={value}
     format-style={details.format}
+    minimum-fraction-digits={details.scale}
+    maximum-significant-digits={details.precision}
   ></lightning-formatted-number>
+  <!-- maximum-fraction-digits
+    minimum-integer-digits
+    minimum-significant-digits -->
 </template>

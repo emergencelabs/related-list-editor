@@ -21,6 +21,8 @@
             value={innerValue}
             field-type={fieldDetail.dataType}
             is-rich-text={fieldDetail.htmlFormatted}
+            precision={fieldDetail.precision}
+            scale={fieldDetail.scale}
             style="
               flex-grow: 1;
               overflow: hidden;
@@ -69,6 +71,7 @@
         onfocus={setKeyOveride}
         onblur={removeKeyOveride}
         autocomplete="off"
+        message-when-step-mismatch="Too many digits after the decimal"
       ></lightning-input>
       <button
         if:true={isModalInput}
