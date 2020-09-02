@@ -461,7 +461,7 @@ export default class InputCell extends LightningElement {
   //need to add all the bad value/message props to these return objects
   // this needs to account for display values as well in likely the same manner as tile does
   fieldToInput(fieldDetail) {
-    if (fieldDetail.controllerName || fieldDetail.compoundComponentName) {
+    if (fieldDetail.controllerName) {
       return {
         supported: false
       };
