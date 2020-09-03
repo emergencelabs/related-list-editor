@@ -196,6 +196,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
     );
   }
 
+  get showBackLink() {
+    return this.isStandalone && this.layoutMode > 1;
+  }
+
   get isTileLayout() {
     return this.layoutMode === 1 || this.layoutMode === 2;
   }
@@ -383,7 +387,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
             {
               label: "Secondary Sort Ascending",
               checked: false,
-              name: "asc",
+              name: "sort:asc",
               disabled:
                 this.columnSortColumn === normalizedApiName ||
                 !fieldDetail.sortable,
@@ -392,7 +396,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
             {
               label: "Secondary Sort Descending",
               checked: false,
-              name: "desc",
+              name: "sort:desc",
               disabled:
                 this.columnSortColumn === normalizedApiName ||
                 !fieldDetail.sortable,
@@ -428,17 +432,17 @@ export default class Editor extends NavigationMixin(LightningElement) {
   };
 
   secondarySort(event) {
-    // Retrieves the name of the selected filter
     let actionName = event.detail.action.name;
-    // Retrieves the current column definition
-    // based on the selected filter
+    if (!actionName.includes("sort")) {
+      return;
+    }
+
     let colDef = event.detail.columnDefinition;
     let columnIndex = this.tableColumns.findIndex(
       (col) => col.fieldName === colDef.fieldName
     );
     let column = this.tableColumns[columnIndex];
-    let isAscending = this.actionName === "asc";
-
+    let isAscending = actionName.includes("asc");
     if (
       this.secondarySortDetails.column === column.fieldName &&
       ((this.secondarySortDetails.ascending && isAscending) ||
@@ -447,7 +451,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
       this.secondarySortDetails.column = null;
     } else {
       this.secondarySortDetails.column = column.fieldName;
-      this.secondarySortDetails.ascending = actionName === "asc";
+      this.secondarySortDetails.ascending = actionName.includes("asc");
     }
 
     column.actions = column.actions.map((action) => {
@@ -723,7 +727,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     //   this.template.querySelector(".modal-table-container") ||
     //   this.template.querySelector(".table-container");
     // let containerWidth = el.getBoundingClientRect().width;
-    this.tableColumns = this.tableColumns.map((detail, _, available) => {
+    this.tableColumns = this.tableColumns.map((detail) => {
       let clone = { ...detail };
       // if (clone.type === "input") {
       //   clone.initialWidth = this.getColumnWidth(
@@ -731,6 +735,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
       //     available.length,
       //     clone.fieldDetail.dataType
       //   );
+      // }
+      // if (clone.actions) {
+      //   clone.actions =
+      //     this.isStandalone || this.modalIsOpen ? [] : clone.actions;
       // }
       clone.hideDefaultActions = this.isStandalone || this.modalIsOpen;
       clone.typeAttributes.defaultEdit = this.modalIsOpen || this.isStandalone;
@@ -983,28 +991,20 @@ export default class Editor extends NavigationMixin(LightningElement) {
       ascending: sortDirection === "asc"
     };
 
-    if (this.secondarySortDetails.column === fieldName) {
-      this.secondarySortDetails.column = null;
-    }
-
-    // THIS CAN BE DONE BETTER WITH AN INDEX LOOKUP, SWAP, SPREAD
-    // IS THERE ANYWHERE ELSE THATS TRUE?
-    let columnIndex = this.tableColumns.findIndex(
-      (col) => col.fieldName === fieldName
-    );
-    let column = this.tableColumns[columnIndex];
-
-    column.actions = column.actions.map((action) => {
-      return {
-        ...action,
-        disabled: true,
-        checked: false
-      };
+    this.secondarySortDetails.column = null;
+    this.tableColumns = this.tableColumns.map((tc) => {
+      let uTC = { ...tc };
+      if (uTC.actions) {
+        uTC.actions = uTC.actions.map((action) => {
+          return {
+            ...action,
+            checked: false
+          };
+        });
+      }
+      return uTC;
     });
-    this.tableColumns[columnIndex] = { ...column };
-    this.tableColumns = [...this.tableColumns];
 
-    //
     this.currentOffset = 0;
     this.refreshingTable = true;
     let sortString = `ORDER BY ${fieldName} ${sortDirection.toUpperCase()} NULLS LAST${

@@ -59,10 +59,12 @@
               </div>
             </div>
             <p
-              class="slds-page-header__name-meta slds-grid slds-grid_vertical-align-center"
+              class="slds-page-header__name-meta slds-grid slds-grid_vertical-align-center slds-wrap"
               if:false={zeroCount}
             >
-              <span class="slds-p-right_small">{metaString}</span>
+              <template for:each={metaStrings} for:item="metaString">
+                <span key={metaString}>{metaString}</span>
+              </template>
             </p>
             <!-- <p
               class="slds-page-header__name-meta slds-grid slds-grid_vertical-align-center"
