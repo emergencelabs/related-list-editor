@@ -275,6 +275,16 @@ export default class InputCell extends LightningElement {
     let { keyCode } = event;
     if ((keyCode >= 37 && keyCode <= 40) || keyCode === 13) {
       event.stopPropagation();
+      if (keyCode === 13) {
+        this.dispatchEvent(
+          new CustomEvent("enterpress", {
+            composed: true,
+            bubbles: true,
+            cancelable: true,
+            detail: { rowId: this.rowId, field: this.fieldDetail.apiName }
+          })
+        );
+      }
       // event.preventDefault();
     }
   };
@@ -291,6 +301,15 @@ export default class InputCell extends LightningElement {
   mouseLeave = () => {
     this.isHovering = false;
   };
+
+  focusInnerElement() {
+    let input = this.template.querySelector(
+      this.componentToSelector[this.inputDetails.component]
+    );
+    if (input.focus) {
+      input.focus();
+    }
+  }
 
   componentToSelector = {
     input: "lightning-input",
@@ -432,6 +451,18 @@ export default class InputCell extends LightningElement {
   }
 
   connectedCallback() {
+    this.dispatchEvent(
+      new CustomEvent("registercell", {
+        composed: true,
+        bubbles: true,
+        cancelable: true,
+        detail: {
+          rowId: this.rowId,
+          field: this.fieldDetail.apiName,
+          focus: this.focusInnerElement.bind(this)
+        }
+      })
+    );
     if (
       this.referenceValue &&
       !Object.keys(this.referenceValue).includes("Name")
@@ -469,6 +500,17 @@ export default class InputCell extends LightningElement {
     this.setContainerClasses();
   }
   disconnectedCallback() {
+    this.dispatchEvent(
+      new CustomEvent("unregistercell", {
+        composed: true,
+        bubbles: true,
+        cancelable: true,
+        detail: {
+          rowId: this.rowId,
+          field: this.fieldDetail.apiName
+        }
+      })
+    );
     this.removeEventListener("mouseenter", this.mouseEnter);
     this.removeEventListener("mouseleave", this.mouseLeave);
     this.template.removeEventListener("dblclick", this.inlineEdit);

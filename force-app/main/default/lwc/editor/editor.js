@@ -995,6 +995,62 @@ export default class Editor extends NavigationMixin(LightningElement) {
     });
   }
 
+  // TODO: switch this to have the event detail stored on the cell class
+  // so that we can have stable identity and do a === check instead of this
+  // as this will be slow as hell with a lot of cells on the screen
+  // or we might even be able to just use a Set
+  registeredCells = [];
+  addCellToRegistry(cellDef) {
+    let cellIndex = this.registeredCells.findIndex(
+      (cell) => cell.rowId === cellDef.rowId && cell.field === cellDef.field
+    );
+    if (cellIndex >= 0) {
+      this.registeredCells[cellIndex] = cellDef;
+    } else {
+      this.registeredCells.push(cellDef);
+    }
+  }
+  // TODO: change this to listen to a disconnect event from the table itself
+  // also right now support is only in modal but need it if standalone as well
+  // basically all default edit situations, simple fix though to make that a check in
+  // inputCell before dispatching the events and then add listeners to other table
+  removeCellFromRegistry(rowId, field) {
+    let cellIndex = this.registeredCells.findIndex(
+      (cell) => cell.rowId === rowId && cell.field === field
+    );
+    if (cellIndex >= 0) {
+      this.registeredCells = this.registeredCells.splice(cellIndex, 1);
+    }
+  }
+  getCellFromRegistry(rowNum, colNum) {
+    return this.registeredCells.find(
+      (cellDef) => cellDef.rowNum === rowNum && cellDef.colNum === colNum
+    );
+  }
+  registerCell({ detail: { rowId, field, focus } }) {
+    this.addCellToRegistry({
+      rowId,
+      field,
+      focus,
+      rowNum: this.records.findIndex((r) => r.Id === rowId),
+      colNum: this.tableColumns.findIndex((c) => c.fieldName === field)
+    });
+    window.console.log(JSON.stringify(this.registeredCells, null, 2));
+  }
+
+  unregisterCell({ detail: { rowId, field } }) {
+    this.removeCellFromRegistry(rowId, field);
+  }
+
+  handleCellEnter({ detail: { rowId, field } }) {
+    let rowNum = this.records.findIndex((r) => r.Id === rowId);
+    let colNum = this.tableColumns.findIndex((c) => c.fieldName === field);
+    let targetCellDef = this.getCellFromRegistry(rowNum + 1, colNum);
+    if (targetCellDef) {
+      targetCellDef.focus();
+    }
+  }
+
   referenceIconMap = {};
   async connectedCallback() {
     let iconPromises = this.relatedListInfo.columns
