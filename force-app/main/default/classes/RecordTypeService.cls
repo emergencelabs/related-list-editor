@@ -18,8 +18,6 @@ public with sharing class RecordTypeService {
     } catch (QueryException qe) {
       return getDefaultRecordTypeId(safeObjectApiName);
     } catch (Exception e) {
-      System.debug(e.getCause());
-      System.debug(e.getTypeName());
       return null;
     }
   }
@@ -55,8 +53,6 @@ public with sharing class RecordTypeService {
     } catch (QueryException qe) {
       return recordTypeMaps;
     } catch (Exception e) {
-      System.debug(e.getCause());
-      System.debug(e.getTypeName());
       return null;
     }
   }

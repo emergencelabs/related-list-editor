@@ -536,7 +536,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   async getRecordCount(queryString) {
-    return getCount({ queryString });
+    return getCount({ queryString, objectApiName: this.childObjectApiName });
   }
 
   // TODO: need to remove the 'RecordTypeId' column from records before updates

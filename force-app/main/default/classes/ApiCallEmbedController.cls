@@ -5,13 +5,14 @@ public with sharing class ApiCallEmbedController {
   public ApiCallEmbedController() {
     PageReference currentPage = ApexPages.currentPage();
     Map<String, String> parameters = currentPage.getParameters();
-    this.targetOrigin = EncodingUtil.urlDecode(parameters.get('u'), 'UTF-8');
+    this.targetOrigin = EncodingUtil.urlDecode(parameters.get('u'), 'UTF-8')
+      .escapeHtml4();
     String apiVersion = parameters.get('v') == null
       ? '49.0'
       : parameters.get('v');
-    String parentObjectApiName = parameters.get('n');
+    String parentObjectApiName = parameters.get('n').escapeHtml4();
     this.objectApiName = parentObjectApiName;
-    String recordTypeId = parameters.get('r');
+    String recordTypeId = parameters.get('r').escapeHtml4();
     String restAPIURL =
       System.Url.getOrgDomainUrl().toExternalForm() +
       '/services/data/v' +

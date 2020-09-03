@@ -9,13 +9,18 @@ public with sharing class ChildRecordService {
     return Database.query(sanitizedQueryString);
   }
 
-  // TODO: throw a check in here for object access just to be certain (would need to handle exception though it shuold never throw?)
   @AuraEnabled
-  public static Integer getCount(String queryString) {
-    String sanitizedQueryString = queryString.escapeHtml4()
-      .replace('&#39;', '\'');
+  public static Integer getCount(String queryString, String objectApiName) {
+    String safeObjectApiName = String.escapeSingleQuotes(objectApiName);
+    Schema.SObjectType type = Schema.getGlobalDescribe().get(safeObjectApiName);
+    Boolean canAccess = type.getDescribe().isAccessible();
+    if (canAccess) {
+      String sanitizedQueryString = queryString.escapeHtml4()
+        .replace('&#39;', '\'');
 
-    return Database.countQuery(sanitizedQueryString);
+      return Database.countQuery(sanitizedQueryString);
+    }
+    return 0;
   }
 
   @AuraEnabled
@@ -50,15 +55,12 @@ public with sharing class ChildRecordService {
             if (err.getFields().size() > 0) {
               for (String s : err.getFields()) {
                 fieldString += s;
-                System.debug(err.getFields());
               }
             } else {
               fieldString = String.valueOf(i);
             }
             errorMap.get(targetRecordId)
               .put(fieldString, err.getStatusCode() + ': ' + err.getMessage());
-
-            // System.debug('fields that affected this error: ' + err.getFields());
           }
         }
       }

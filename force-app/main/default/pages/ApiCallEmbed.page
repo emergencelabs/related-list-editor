@@ -1,10 +1,11 @@
 <apex:page controller="ApiCallEmbedController">
   <h1>Nothing to see here.</h1>
-  <apex:outputText value="{!pageLayoutDescribeResponse}" />
   <script>
     let targetWindow = window.parent;
     if (targetWindow) {
-      targetWindow.postMessage({ data: {!pageLayoutDescribeResponse }, object: `{!objectApiName}`}, "{!targetOrigin}");
+      const targetOrigin = `{!JSENCODE(targetOrigin)}`;
+      targetWindow.postMessage({ data: JSON.parse(`{!JSENCODE(pageLayoutDescribeResponse)}`), object: `{!JSENCODE(objectApiName)}` }, targetOrigin);
     }
   </script>
+
 </apex:page>

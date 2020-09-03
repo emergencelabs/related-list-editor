@@ -8,6 +8,7 @@
     "create": "sfdx force:org:create -h",
     "dev": "npm run push",
     "push": "sfdx force:source:push -f",
+    "push:package": "sfdx force:source:deploy -l RunLocalTests -p force-app/main/default/ -u 'rlePackage' -w 10",
     "pull": "sfdx force:source:pull",
     "lint": "npm run lint:lwc && npm run lint:aura",
     "lint:aura": "eslint **/aura/**",
@@ -21,7 +22,8 @@
     "test:unit:coverage": "sfdx-lwc-jest --coverage",
     "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "prettier:verify": "prettier --list-different \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
-    "create:package": "sfdx force:package:version:create -c -k 'Emergence' -p RLETest2 -w 5"
+    "create:package:version": "sfdx force:package:version:create -c -k 'Emergence' -p RLETest2 -w 5",
+    "create:package:new": ""
   },
   "devDependencies": {
     "@prettier/plugin-xml": "^0.7.2",
