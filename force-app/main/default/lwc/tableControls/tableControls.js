@@ -1,9 +1,17 @@
-import { LightningElement, api } from "lwc";
+import { LightningElement, api, track } from "lwc";
 
 export default class TableControls extends LightningElement {
   @api blockSave = false;
   @api hasErrors = false;
   @api noScroll = false;
+  @api errorMessage;
+
+  @track showingPopover = false;
+
+  togglePopover = () => {
+    this.showingPopover = !this.showingPopover;
+  };
+  s;
 
   get style() {
     if (this.noScroll) {
