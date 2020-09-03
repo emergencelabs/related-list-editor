@@ -521,8 +521,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
       }
 
       let commitAttemptCount = Object.keys(this.cellStatusMap).length;
-      let recordLabel = commitAttemptCount === 1 ? "record" : "records";
-      let title = `${commitAttemptCount} ${recordLabel} successfully updated`;
+      let title = `${commitAttemptCount} record(s) successfully updated`;
       let variant = "success";
       let message = "";
 
@@ -530,16 +529,16 @@ export default class Editor extends NavigationMixin(LightningElement) {
 
       if (errorCount) {
         if (errorCount === commitAttemptCount) {
-          title = `${errorCount} ${recordLabel} were unable to be updated`;
+          title = `${errorCount} record(s) were unable to be updated`;
           variant = "error";
         } else {
           title = `${
             commitAttemptCount - errorCount
-          } of ${commitAttemptCount} ${recordLabel} successfully updated`;
+          } of ${commitAttemptCount} record(s) successfully updated`;
           variant = "warning";
         }
         // TODO fix to record label (s), refactor to a pluralize(word, count) func
-        message = `Details on the ${errorCount} unsaved records are available in the table`;
+        message = `Details on the ${errorCount} unsaved record(s) are available in the table`;
 
         let errorObj = {
           rows: {}
@@ -555,7 +554,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
               ? "Error"
               : fieldDetails.label;
           errorObj.rows[id] = {
-            title: `We found ${errorKeys.length} errors`,
+            title: `We found ${errorKeys.length} error(s)`,
             messages: `${messagePrefix}: ${Object.values(errors[id])}`,
             fieldNames: errorKeys
           };
