@@ -23,6 +23,7 @@
     visible-count={records.length}
     allow-edit-modal={allowEditModal}
     show-back-link={showBackLink}
+    is-tile-layout={isTileLayout}
     reason-for-new-modal={reasonForNewModal}
     sort-string={sortedByString}
     ondisplaymodal={launchModal}
@@ -92,6 +93,9 @@
           errors={errors}
           no-scroll={noScroll}
           min-column-width={MIN_COLUMN_WIDTH}
+          onregistercell={registerCell}
+          onenterpress={handleCellEnter}
+          onunregistercell={unregisterCell}
           onresize={setColumnWidthsInStorage}
         >
         </c-table>

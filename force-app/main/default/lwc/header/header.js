@@ -13,6 +13,7 @@ export default class Header extends NavigationMixin(LightningElement) {
   @api fullCount;
   @api visibleCount;
   @api showBackLink = false;
+  @api isTileLayout = false;
   @api allowEditModal = false;
   @api reasonForNewModal;
 
@@ -46,17 +47,16 @@ export default class Header extends NavigationMixin(LightningElement) {
     return [];
   }
 
+  get showResetColumns() {
+    return !this.zeroCount && !this.isTileLayout;
+  }
+
   get zeroCount() {
     return this.count === "0" || this.count === 0;
   }
 
   get showBackButton() {
     return this.showBackLink;
-  }
-
-  // TODO: on merge create new getter that doesnt show table reset for tile view
-  get zeroCount() {
-    return this.count === 0 || this.count === "0";
   }
 
   newRecord() {

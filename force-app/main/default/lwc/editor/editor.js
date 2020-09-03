@@ -161,10 +161,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return `${this.totalRecordsCount}`;
   }
 
-  // TODO: likely need to call the confirmation here on cancel
-  // if has unsaved changes
-  // this means that the confirmation modal needs to know what method to call after
-  // it would be way better to do it as a promise but
   @track modalIsOpen = false;
   launchModal() {
     if (this.hasUnsavedChanges) {
@@ -180,12 +176,8 @@ export default class Editor extends NavigationMixin(LightningElement) {
     this.resetColumnsEdit();
   }
 
-  // TODO: this needs to sync up or just refresh the data table that is behind the modal
   async closeModal({ detail: { isSave } }) {
     if (!isSave && this.hasUnsavedChanges) {
-      // pop confirmation modal
-      // on cancel do nothing but close that modal
-      // on confirm call the same func as below
       this.currentAction = "close";
       this.actionTypeToFunc.close.args = [{ detail: { isSave } }, true];
       this.confirmLoseChanges = true;
@@ -322,7 +314,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     }
   }
 
-  // TODO: you can add disabled: true to disable an action
+  // TODO for inline new: you can add disabled: true to disable an action
   // although it doesnt seem you can make this change on a per-row basis??
   actions = [
     {
@@ -337,16 +329,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   populateTableColumns(targetList) {
     // 1: Filter out all columns that the user does not have access to
     // 2: Map the columns into what the datatable needs
-    // let containerWidth = this.template
-    //   .querySelector(".table-container")
-    //   .getBoundingClientRect().width;
 
-    /*     initialWidth: this.getColumnWidth(
-            containerWidth,
-            available.length,
-            fieldDetail.dataType
-          ),
-          */
     let savedColumnWidthMap = this.getColumnWidthsFromStorage();
     let columns = targetList.columns
       .filter(({ fieldApiName, lookupId }) => {
@@ -441,10 +424,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return 10;
   }
 
-  // TODO: this is going to need to store the ORDER BY and OFFSET (maybe, TBD on if table sorting can reset it)
-  // in state so that it can persist with whatever the latest sort is for infinite scroll
-  // and also allow sort to change
-
   secondarySortDetails = {
     column: null,
     ascending: false
@@ -462,6 +441,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     );
     let column = this.tableColumns[columnIndex];
     let isAscending = actionName.includes("asc");
+    // TODO this logic can be changed to .ascending === isAscending
     if (
       this.secondarySortDetails.column === column.fieldName &&
       ((this.secondarySortDetails.ascending && isAscending) ||
@@ -1186,7 +1166,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
       rowNum: this.records.findIndex((r) => r.Id === rowId),
       colNum: this.tableColumns.findIndex((c) => c.fieldName === field)
     });
-    // window.console.log(JSON.stringify(this.registeredCells, null, 2));
   }
 
   unregisterCell({ detail: { rowId, field } }) {
@@ -1205,7 +1184,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
   // TODO: consider that this could break for same object but different related list
   setColumnWidthsInStorage({ detail: { columnWidths, isUserTriggered } }) {
     if (isUserTriggered) {
-      console.log({ columnWidths, isUserTriggered });
       let fieldToColumnWidths = columnWidths.reduce(
         (widthMap, width, index) => {
           let fieldName = this.tableColumns[index].fieldName;
