@@ -112,11 +112,16 @@ export default class InputCell extends LightningElement {
     return this.fieldDetail.nameField;
   }
   get nameLink() {
-    return `/lightning/r/${this.rowId}/view`;
+    if (this.rowId && !this.rowId.includes("javascript")) {
+      return `/lightning/r/${this.rowId}/view`;
+    }
+    return null;
   }
 
   get link() {
-    return this.currentReferenceValue
+    return this.currentReferenceValue &&
+      this.currentReferenceValue.Id &&
+      !this.currentReferenceValue.Id.includes("javascript")
       ? `/lightning/r/${this.currentReferenceValue.Id}/view`
       : null;
   }

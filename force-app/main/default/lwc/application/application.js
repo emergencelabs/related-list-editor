@@ -92,8 +92,15 @@ export default class Application extends LightningElement {
     let url = window.location.origin;
     return url.substring(0, url.indexOf("."));
   }
+
+  // Ensure that `javascript:` cannot be injected into the iframe src
   get vfPageUrl() {
-    if (this.objectApiName && this.recordTypeId) {
+    if (
+      this.objectApiName &&
+      this.recordTypeId &&
+      !this.objectApiName.includes("javascript") &&
+      !this.recordTypeId.includes("javascript")
+    ) {
       return `${this.urlBase}--rle.visualforce.com/apex/ApiCallEmbed?v=49.0&n=${
         this.objectApiName
       }&r=${this.recordTypeId}&u=${encodeURIComponent(window.location.origin)}`;

@@ -50,7 +50,11 @@ export default class Tile extends NavigationMixin(LightningElement) {
   }
 
   get childRecordUrl() {
-    if (this.record) {
+    if (
+      this.record &&
+      this.record.Id &&
+      !this.record.Id.includes("javascript")
+    ) {
       return `/lightning/r/${this.record.Id}/view`;
     }
     return "#";
