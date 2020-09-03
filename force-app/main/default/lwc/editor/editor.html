@@ -19,8 +19,12 @@
     relationship-field={relationshipField}
     record-id={recordId}
     count={totalRecordsCountLabel}
+    full-count={totalRecordsCount}
+    visible-count={records.length}
     allow-edit-modal={allowEditModal}
+    show-back-link={showBackLink}
     reason-for-new-modal={reasonForNewModal}
+    sort-string={sortedByString}
     ondisplaymodal={launchModal}
     onrefreshrecords={refreshRecords}
     onrequestnew={requestNewRecordModal}
@@ -81,6 +85,7 @@
           onsort={updateColumnSorting}
           onrowaction={handleRowAction}
           onlinknavigate={linkNavigate}
+          onheaderaction={secondarySort}
           sorted-by={columnSortColumn}
           sorted-direction={columnSortDirection}
           show-row-number-column
