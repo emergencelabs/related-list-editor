@@ -19,22 +19,54 @@ public with sharing class ChildRecordService {
     if (canAccess) {
       String fieldString = '';
       for (Integer i = 0; i < fields.size(); i++) {
-        Schema.DescribeFieldResult fieldDescribe = childDescribe.fields.getMap()
-          .get(fields.get(i))
-          .getDescribe();
-        //check that field isAccessible to user
-        //check that field is not encrypted
-        if (fieldDescribe.isAccessible() && !fieldDescribe.isEncrypted()) {
-          fieldString += fields.get(i);
-          if (i != fields.size() - 1) {
+        String field = fields.get(i);
+        System.debug(field);
+        Integer dotIndex = field.indexOf('.');
+        if (dotIndex >= 0) {
+          // dont include fields that walk two objects
+          if (field.indexOf('.', dotIndex + 1) >= 0) {
+            continue;
+          }
+          //check user access on object for lookup
+          String lookupObject = field.substring(0, dotIndex);
+          if (lookupObject == 'Owner') {
+            lookupObject = 'User';
+          }
+          Schema.SObjectType lookupType = Schema.getGlobalDescribe()
+            .get(lookupObject);
+
+          Schema.DescribeSObjectResult lookupDescribe = lookupType.getDescribe();
+          if (lookupDescribe.isAccessible()) {
+            //check user access on field for object
+            String lookupFieldName = field.substring(dotIndex + 1);
+            System.debug(lookupFieldName);
+            Schema.DescribeFieldResult lookupFieldDescribe = lookupDescribe.fields.getMap()
+              .get(lookupFieldName)
+              .getDescribe();
+            if (
+              lookupFieldDescribe.isAccessible() &&
+              !lookupFieldDescribe.isEncrypted()
+            ) {
+              fieldString += field;
+              fieldString += ', ';
+            }
+          }
+        } else {
+          Schema.DescribeFieldResult fieldDescribe = childDescribe.fields.getMap()
+            .get(field)
+            .getDescribe();
+          //check that field isAccessible to user
+          //check that field is not encrypted
+          if (fieldDescribe.isAccessible() && !fieldDescribe.isEncrypted()) {
+            fieldString += field;
             fieldString += ', ';
           }
         }
       }
-
+      System.debug(fieldString);
       return Database.query(
         'SELECT Id, ' +
-        fieldString +
+        fieldString.substring(0, fieldString.length() - 2) +
         ' FROM ' +
         safeObjectApiName +
         ' WHERE ' +
