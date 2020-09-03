@@ -64,6 +64,21 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return Object.keys(this.errors.rows).length !== 0;
   }
 
+  get tableErrorMessage() {
+    if (this.hasErrors) {
+      let errorMsg = `The following row(s) have errors: ${Object.keys(
+        this.errors.rows
+      )
+        .map((Id) => {
+          return this.records.findIndex((record) => record.Id === Id) + 1;
+        })
+        .join(", ")}`;
+
+      return errorMsg;
+    }
+    return null;
+  }
+
   get hasUnsavedChanges() {
     return Object.values(this.cellStatusMap).some((f) =>
       Object.values(f).some((i) => i.isChanged)
@@ -332,7 +347,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
             fieldDetail.dataType
           ),
           */
-
+    let savedColumnWidthMap = this.getColumnWidthsFromStorage();
     let columns = targetList.columns
       .filter(({ fieldApiName, lookupId }) => {
         let normalizedApiName = fieldApiName;
@@ -377,6 +392,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
             defaultEdit: this.isStandalone || this.modalIsOpen,
             recordTypeId: { fieldName: "RecordTypeId" }
           },
+          initialWidth:
+            savedColumnWidthMap && savedColumnWidthMap[normalizedApiName]
+              ? savedColumnWidthMap[normalizedApiName]
+              : undefined,
           hideDefaultActions: this.isStandalone || this.modalIsOpen,
           fieldName: normalizedApiName,
           fieldDetail,
@@ -602,7 +621,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
       }
 
       let commitAttemptCount = Object.keys(this.cellStatusMap).length;
-      let title = `${commitAttemptCount} records successfully updated`;
+      let title = `${commitAttemptCount} record(s) successfully updated`;
       let variant = "success";
       let message = "";
 
@@ -610,15 +629,16 @@ export default class Editor extends NavigationMixin(LightningElement) {
 
       if (errorCount) {
         if (errorCount === commitAttemptCount) {
-          title = `${errorCount} records were unable to be updated`;
+          title = `${errorCount} record(s) were unable to be updated`;
           variant = "error";
         } else {
           title = `${
             commitAttemptCount - errorCount
-          } of ${commitAttemptCount} records successfully updated`;
+          } of ${commitAttemptCount} record(s) successfully updated`;
           variant = "warning";
         }
-        message = `Details on the ${errorCount} unsaved records are available in the table`;
+        // TODO fix to record label (s), refactor to a pluralize(word, count) func
+        message = `Details on the ${errorCount} unsaved record(s) are available in the table`;
 
         let errorObj = {
           rows: {}
@@ -634,7 +654,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
               ? "Error"
               : fieldDetails.label;
           errorObj.rows[id] = {
-            title: `We found ${errorKeys.length} errors`,
+            title: `We found ${errorKeys.length} error(s)`,
             messages: `${messagePrefix}: ${Object.values(errors[id])}`,
             fieldNames: errorKeys
           };
@@ -729,21 +749,24 @@ export default class Editor extends NavigationMixin(LightningElement) {
     // let containerWidth = el.getBoundingClientRect().width;
     this.tableColumns = this.tableColumns.map((detail) => {
       let clone = { ...detail };
-      // if (clone.type === "input") {
-      //   clone.initialWidth = this.getColumnWidth(
-      //     containerWidth,
-      //     available.length,
-      //     clone.fieldDetail.dataType
-      //   );
-      // }
-      // if (clone.actions) {
-      //   clone.actions =
-      //     this.isStandalone || this.modalIsOpen ? [] : clone.actions;
-      // }
+      let storedWidths = this.getColumnWidthsFromStorage();
+      if (storedWidths) {
+        clone.initialWidth = storedWidths[detail.fieldName];
+      }
       clone.hideDefaultActions = this.isStandalone || this.modalIsOpen;
       clone.typeAttributes.defaultEdit = this.modalIsOpen || this.isStandalone;
       return clone;
     });
+  }
+
+  resetColumnWidths() {
+    this.tableColumns = this.tableColumns.map((colDef) => {
+      delete colDef.initialWidth;
+      return colDef;
+    });
+    window.localStorage.removeItem(
+      `${this.objectApiName}:${this.childObjectApiName}`
+    );
   }
 
   async getNextRecords() {
@@ -1121,6 +1144,96 @@ export default class Editor extends NavigationMixin(LightningElement) {
         table.enableInfiniteLoading = this.canRequestMore;
       }
     });
+  }
+
+  // TODO: switch this to have the event detail stored on the cell class
+  // so that we can have stable identity and do a === check instead of this
+  // as this will be slow as hell with a lot of cells on the screen
+  // or we might even be able to just use a Set
+  registeredCells = [];
+  addCellToRegistry(cellDef) {
+    let cellIndex = this.registeredCells.findIndex(
+      (cell) => cell.rowId === cellDef.rowId && cell.field === cellDef.field
+    );
+    if (cellIndex >= 0) {
+      this.registeredCells[cellIndex] = cellDef;
+    } else {
+      this.registeredCells.push(cellDef);
+    }
+  }
+  // TODO: change this to listen to a disconnect event from the table itself
+  // also right now support is only in modal but need it if standalone as well
+  // basically all default edit situations, simple fix though to make that a check in
+  // inputCell before dispatching the events and then add listeners to other table
+  removeCellFromRegistry(rowId, field) {
+    let cellIndex = this.registeredCells.findIndex(
+      (cell) => cell.rowId === rowId && cell.field === field
+    );
+    if (cellIndex >= 0) {
+      this.registeredCells = this.registeredCells.splice(cellIndex, 1);
+    }
+  }
+  getCellFromRegistry(rowNum, colNum) {
+    return this.registeredCells.find(
+      (cellDef) => cellDef.rowNum === rowNum && cellDef.colNum === colNum
+    );
+  }
+  registerCell({ detail: { rowId, field, focus } }) {
+    this.addCellToRegistry({
+      rowId,
+      field,
+      focus,
+      rowNum: this.records.findIndex((r) => r.Id === rowId),
+      colNum: this.tableColumns.findIndex((c) => c.fieldName === field)
+    });
+    // window.console.log(JSON.stringify(this.registeredCells, null, 2));
+  }
+
+  unregisterCell({ detail: { rowId, field } }) {
+    this.removeCellFromRegistry(rowId, field);
+  }
+
+  handleCellEnter({ detail: { rowId, field } }) {
+    let rowNum = this.records.findIndex((r) => r.Id === rowId);
+    let colNum = this.tableColumns.findIndex((c) => c.fieldName === field);
+    let targetCellDef = this.getCellFromRegistry(rowNum + 1, colNum);
+    if (targetCellDef) {
+      targetCellDef.focus();
+    }
+  }
+
+  // TODO: consider that this could break for same object but different related list
+  setColumnWidthsInStorage({ detail: { columnWidths, isUserTriggered } }) {
+    if (isUserTriggered) {
+      console.log({ columnWidths, isUserTriggered });
+      let fieldToColumnWidths = columnWidths.reduce(
+        (widthMap, width, index) => {
+          let fieldName = this.tableColumns[index].fieldName;
+          widthMap[fieldName] = width;
+          return widthMap;
+        },
+        {}
+      );
+      window.localStorage.setItem(
+        `${this.objectApiName}:${this.childObjectApiName}`,
+        JSON.stringify(fieldToColumnWidths)
+      );
+    }
+  }
+
+  getColumnWidthsFromStorage() {
+    let savedColumnWidthMap = window.localStorage.getItem(
+      `${this.objectApiName}:${this.childObjectApiName}`
+    );
+    if (savedColumnWidthMap) {
+      try {
+        savedColumnWidthMap = JSON.parse(savedColumnWidthMap);
+        console.log(savedColumnWidthMap);
+      } catch (e) {
+        savedColumnWidthMap = null;
+      }
+    }
+    return savedColumnWidthMap;
   }
 
   referenceIconMap = {};

@@ -54,6 +54,11 @@ export default class Header extends NavigationMixin(LightningElement) {
     return this.showBackLink;
   }
 
+  // TODO: on merge create new getter that doesnt show table reset for tile view
+  get zeroCount() {
+    return this.count === 0 || this.count === "0";
+  }
+
   newRecord() {
     this.dispatchEvent(new CustomEvent("requestnew"));
   }
@@ -91,6 +96,10 @@ export default class Header extends NavigationMixin(LightningElement) {
         c__relationshipField: this.relationshipField
       }
     });
+  }
+
+  resetColumnWidths() {
+    this.dispatchEvent(new CustomEvent("resetcolumns"));
   }
 
   getName() {

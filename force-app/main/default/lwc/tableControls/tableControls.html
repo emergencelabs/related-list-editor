@@ -1,25 +1,36 @@
 <template>
   <div class="slds-is-relative" style={style}>
-    <div class="slds-docked-form-footer slds-is-absolute">
-      <lightning-icon
+    <div class="slds-docked-form-footer slds-is-absolute slds-show">
+      <p
+        class="slds-text-color_error"
+        style="margin: 5px auto; width: fit-content;"
         if:true={hasErrors}
-        variant="error"
-        size="small"
-        icon-name="utility:error"
-        class="slds-m-right_small"
-      ></lightning-icon>
-      <lightning-button
-        label="Cancel"
-        variant="neutral"
-        onclick={cancel}
-      ></lightning-button>
-      <lightning-button
-        label="Save"
-        variant="brand"
-        class="slds-m-left_small"
-        disabled={blockSave}
-        onclick={save}
-      ></lightning-button>
+      >
+        {errorMessage}
+      </p>
+      <div
+        class="slds-grid slds-grid_align-center slds-grid_vertical-align-center"
+      >
+        <lightning-icon
+          if:true={hasErrors}
+          variant="error"
+          size="small"
+          icon-name="utility:error"
+          class="slds-var-m-right_small"
+        ></lightning-icon>
+        <lightning-button
+          label="Cancel"
+          variant="neutral"
+          onclick={cancel}
+        ></lightning-button>
+        <lightning-button
+          label="Save"
+          variant="brand"
+          class="slds-var-m-left_small"
+          disabled={blockSave}
+          onclick={save}
+        ></lightning-button>
+      </div>
     </div>
   </div>
 </template>
