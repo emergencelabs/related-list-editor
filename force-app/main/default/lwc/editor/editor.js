@@ -328,7 +328,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
             fieldDetail.dataType
           ),
           */
-
+    let savedColumnWidthMap = this.getColumnWidthsFromStorage();
     let columns = targetList.columns
       .filter(({ fieldApiName, lookupId }) => {
         let normalizedApiName = fieldApiName;
@@ -373,6 +373,10 @@ export default class Editor extends NavigationMixin(LightningElement) {
             defaultEdit: this.isStandalone || this.modalIsOpen,
             recordTypeId: { fieldName: "RecordTypeId" }
           },
+          initialWidth:
+            savedColumnWidthMap && savedColumnWidthMap[normalizedApiName]
+              ? savedColumnWidthMap[normalizedApiName]
+              : undefined,
           hideDefaultActions: this.isStandalone || this.modalIsOpen,
           fieldName: normalizedApiName,
           fieldDetail,
@@ -627,19 +631,26 @@ export default class Editor extends NavigationMixin(LightningElement) {
     //   this.template.querySelector(".modal-table-container") ||
     //   this.template.querySelector(".table-container");
     // let containerWidth = el.getBoundingClientRect().width;
-    this.tableColumns = this.tableColumns.map((detail, _, available) => {
+    this.tableColumns = this.tableColumns.map((detail) => {
       let clone = { ...detail };
-      // if (clone.type === "input") {
-      //   clone.initialWidth = this.getColumnWidth(
-      //     containerWidth,
-      //     available.length,
-      //     clone.fieldDetail.dataType
-      //   );
-      // }
+      let storedWidths = this.getColumnWidthsFromStorage();
+      if (storedWidths) {
+        clone.initialWidth = storedWidths[detail.fieldName];
+      }
       clone.hideDefaultActions = this.isStandalone || this.modalIsOpen;
       clone.typeAttributes.defaultEdit = this.modalIsOpen || this.isStandalone;
       return clone;
     });
+  }
+
+  resetColumnWidths() {
+    this.tableColumns = this.tableColumns.map((colDef) => {
+      delete colDef.initialWidth;
+      return colDef;
+    });
+    window.localStorage.removeItem(
+      `${this.objectApiName}:${this.childObjectApiName}`
+    );
   }
 
   async getNextRecords() {
@@ -1035,7 +1046,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
       rowNum: this.records.findIndex((r) => r.Id === rowId),
       colNum: this.tableColumns.findIndex((c) => c.fieldName === field)
     });
-    window.console.log(JSON.stringify(this.registeredCells, null, 2));
+    // window.console.log(JSON.stringify(this.registeredCells, null, 2));
   }
 
   unregisterCell({ detail: { rowId, field } }) {
@@ -1049,6 +1060,40 @@ export default class Editor extends NavigationMixin(LightningElement) {
     if (targetCellDef) {
       targetCellDef.focus();
     }
+  }
+
+  // TODO: consider that this could break for same object but different related list
+  setColumnWidthsInStorage({ detail: { columnWidths, isUserTriggered } }) {
+    if (isUserTriggered) {
+      console.log({ columnWidths, isUserTriggered });
+      let fieldToColumnWidths = columnWidths.reduce(
+        (widthMap, width, index) => {
+          let fieldName = this.tableColumns[index].fieldName;
+          widthMap[fieldName] = width;
+          return widthMap;
+        },
+        {}
+      );
+      window.localStorage.setItem(
+        `${this.objectApiName}:${this.childObjectApiName}`,
+        JSON.stringify(fieldToColumnWidths)
+      );
+    }
+  }
+
+  getColumnWidthsFromStorage() {
+    let savedColumnWidthMap = window.localStorage.getItem(
+      `${this.objectApiName}:${this.childObjectApiName}`
+    );
+    if (savedColumnWidthMap) {
+      try {
+        savedColumnWidthMap = JSON.parse(savedColumnWidthMap);
+        console.log(savedColumnWidthMap);
+      } catch (e) {
+        savedColumnWidthMap = null;
+      }
+    }
+    return savedColumnWidthMap;
   }
 
   referenceIconMap = {};

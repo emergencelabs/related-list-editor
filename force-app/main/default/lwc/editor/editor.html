@@ -24,6 +24,7 @@
     ondisplaymodal={launchModal}
     onrefreshrecords={refreshRecords}
     onrequestnew={requestNewRecordModal}
+    onresetcolumns={resetColumnWidths}
   ></c-header>
   <div
     style={sharedContainerHeightStyle}
@@ -86,6 +87,7 @@
           errors={errors}
           no-scroll={noScroll}
           min-column-width={MIN_COLUMN_WIDTH}
+          onresize={setColumnWidthsInStorage}
         >
         </c-table>
         <div style="position: relative;" if:true={canRequestMore}>
@@ -123,7 +125,7 @@
       variant="error"
       size="small"
       icon-name="utility:error"
-      class="slds-m-right_small"
+      class="slds-var-m-right_small"
     ></lightning-icon>
     <div
       style="min-height: 100px;"
@@ -158,6 +160,7 @@
           onregistercell={registerCell}
           onenterpress={handleCellEnter}
           onunregistercell={unregisterCell}
+          onresize={setColumnWidthsInStorage}
         >
         </c-table>
       </div>
@@ -169,8 +172,8 @@
       save-button-label="Discard Changes"
       size="small"
     >
-      <div class="slds-m-around_medium">
-        <p class="slds-align_absolute-center slds-m-bottom_small">
+      <div class="slds-var-m-around_medium">
+        <p class="slds-align_absolute-center slds-var-m-bottom_small">
           Are you sure you want to discard these changes?
         </p>
       </div>
@@ -183,12 +186,12 @@
       save-button-variant="destructive"
       size="small"
     >
-      <div class="slds-m-around_medium">
-        <p class="slds-align_absolute-center slds-m-bottom_small">
+      <div class="slds-var-m-around_medium">
+        <p class="slds-align_absolute-center slds-var-m-bottom_small">
           Are you sure you want to delete this {childObjectLabel}?
         </p>
         <p
-          class="slds-align_absolute-center slds-m-bottom_small"
+          class="slds-align_absolute-center slds-var-m-bottom_small"
           if:true={hasUnsavedChanges}
         >
           You have unsaved changes that will be lost.
@@ -204,8 +207,8 @@
       save-button-label="Discard Changes"
       size="small"
     >
-      <div class="slds-m-around_medium">
-        <p class="slds-align_absolute-center slds-m-bottom_small">
+      <div class="slds-var-m-around_medium">
+        <p class="slds-align_absolute-center slds-var-m-bottom_small">
           Are you sure you want to discard these changes?
         </p>
       </div>
@@ -218,12 +221,12 @@
       save-button-variant="destructive"
       size="small"
     >
-      <div class="slds-m-around_medium">
-        <p class="slds-align_absolute-center slds-m-bottom_small">
+      <div class="slds-var-m-around_medium">
+        <p class="slds-align_absolute-center slds-var-m-bottom_small">
           Are you sure you want to delete this {childObjectLabel}?
         </p>
         <p
-          class="slds-align_absolute-center slds-m-bottom_small"
+          class="slds-align_absolute-center slds-var-m-bottom_small"
           if:true={hasUnsavedChanges}
         >
           You have unsaved changes that will be lost.

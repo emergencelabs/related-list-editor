@@ -75,11 +75,27 @@
       <div class="slds-page-header__col-actions">
         <div class="slds-page-header__controls">
           <div class="slds-page-header__control">
+            <lightning-button-menu
+              alternative-text="Show menu"
+              variant="border-filled"
+              icon-name="utility:settings"
+              if:false={zeroCount}
+              onselect={resetColumnWidths}
+            >
+              <!-- <lightning-menu-subheader
+                label="LIST VIEW CONTROLS"
+              ></lightning-menu-subheader> -->
+              <lightning-menu-item
+                value="reset"
+                label="Reset Column Widths"
+              ></lightning-menu-item>
+            </lightning-button-menu>
             <lightning-button-icon
               alternative-text="Refresh Records"
               variant="border-filled"
               icon-name="utility:refresh"
               onclick={refreshRecords}
+              class="slds-var-m-left_small"
             ></lightning-button-icon>
           </div>
           <div class="slds-page-header__control">
