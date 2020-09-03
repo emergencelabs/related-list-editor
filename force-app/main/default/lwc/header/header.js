@@ -10,14 +10,48 @@ export default class Header extends NavigationMixin(LightningElement) {
   @api relationshipField;
   @api recordId;
   @api count = "0";
-
+  @api fullCount;
+  @api visibleCount;
+  @api showBackLink = false;
   @api allowEditModal = false;
   @api reasonForNewModal;
 
   name;
 
+  @api sortString = "";
+  get metaStrings() {
+    if (this.sortString) {
+      let countString = this.count.includes("+")
+        ? `Showing ${this.visibleCount} of ${this.fullCount} item${
+            this.count !== 1 ? "s" : ""
+          }`
+        : "";
+      return [countString, this.sortString]
+        .filter((s) => !!s)
+        .map((str, i, list) => {
+          if (i !== list.length - 1) {
+            return `${str} • `;
+          }
+          return str;
+        });
+    }
+    //   return `${
+    //     this.count.includes("+")
+    //       ? `Showing ${this.visibleCount} of ${this.fullCount} item${
+    //           this.count !== 1 ? "s" : ""
+    //         } • `
+    //       : ""
+    //   }${this.sortString}`;
+
+    return [];
+  }
+
+  get zeroCount() {
+    return this.count === "0" || this.count === 0;
+  }
+
   get showBackButton() {
-    return !this.allowEditModal && this.recordId;
+    return this.showBackLink;
   }
 
   newRecord() {
