@@ -506,37 +506,62 @@ export default class Editor extends NavigationMixin(LightningElement) {
               : ""
           }`
     }`;
-    window.console.log(sortString);
     let limitString = `LIMIT ${this.layoutModeLimit}`;
     // filter out all fields that are not accessible to the current user
-    let queryString = `SELECT Id, ${this.relatedListInfo.columns
-      .filter(({ fieldApiName, lookupId }) => {
-        let normalizedApiName = fieldApiName;
-        if (fieldApiName.includes(".")) {
-          normalizedApiName = lookupId.replace(".", "");
-        }
-        let fielDetails = this.childFields[normalizedApiName];
-        if (fielDetails && fielDetails.dataType === "EncryptedString") {
-          return false;
-        }
+    return {
+      fields: this.relatedListInfo.columns
+        .filter(({ fieldApiName, lookupId }) => {
+          let normalizedApiName = fieldApiName;
+          if (fieldApiName.includes(".")) {
+            normalizedApiName = lookupId.replace(".", "");
+          }
+          let fielDetails = this.childFields[normalizedApiName];
+          if (fielDetails && fielDetails.dataType === "EncryptedString") {
+            return false;
+          }
 
-        return !!fielDetails;
-      })
-      .map((c) => c.fieldApiName)
-      .join(", ")} FROM ${this.childObjectApiName} WHERE ${
-      this.relationshipField
-    } = '${this.recordId}' ${
-      customSortString !== null ? customSortString : sortString
-    } ${limitString} ${offsetString}`;
-    return queryString;
+          return !!fielDetails;
+        })
+        .map((c) => c.fieldApiName),
+      childObjectApiName: this.childObjectApiName,
+      relationshipField: this.relationshipField,
+      recordId: this.recordId,
+      sortString: customSortString !== null ? customSortString : sortString,
+      limitString,
+      offsetString
+    };
+    // let queryString = `SELECT Id, ${this.relatedListInfo.columns
+    //   .filter(({ fieldApiName, lookupId }) => {
+    //     let normalizedApiName = fieldApiName;
+    //     if (fieldApiName.includes(".")) {
+    //       normalizedApiName = lookupId.replace(".", "");
+    //     }
+    //     let fielDetails = this.childFields[normalizedApiName];
+    //     if (fielDetails && fielDetails.dataType === "EncryptedString") {
+    //       return false;
+    //     }
+
+    //     return !!fielDetails;
+    //   })
+    //   .map((c) => c.fieldApiName)
+    //   .join(", ")} FROM ${this.childObjectApiName} WHERE ${
+    //   this.relationshipField
+    // } = '${this.recordId}' ${
+    //   customSortString !== null ? customSortString : sortString
+    // } ${limitString} ${offsetString}`;
+    // return queryString;
   }
 
   buildCountQueryString() {
-    return `SELECT COUNT() FROM ${this.childObjectApiName} WHERE ${this.relationshipField} = '${this.recordId}'`;
+    return {
+      objectApiName: this.childObjectApiName,
+      relationshipField: this.relationshipField,
+      recordId: this.recordId
+    };
   }
 
   async getRecordCount(queryString) {
-    return getCount({ queryString, objectApiName: this.childObjectApiName });
+    return getCount(queryString);
   }
 
   // TODO: need to remove the 'RecordTypeId' column from records before updates
@@ -547,7 +572,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   // record type id cant be added to the column list thankfully
   async getChildRecords(queryString) {
     // NOTE: unfortunately these cannot run in parrallel as the recordTypeMap requires the Ids
-    let childRecords = await getChildRecords({ queryString });
+    let childRecords = await getChildRecords(queryString);
     let recordTypeMap = await getRecordTypeIdForList({
       objectApiName: this.childObjectApiName,
       recordIds: childRecords.map((r) => r.Id)
