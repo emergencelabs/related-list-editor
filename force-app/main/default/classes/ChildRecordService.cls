@@ -31,6 +31,12 @@ public with sharing class ChildRecordService {
           relIndex = lookupObject.lastIndexOf('__r');
           isCustomRel = lookupObject.endsWith('__r');
         }
+        if (lookupObject == 'Parent') {
+          fieldString += field;
+          fieldString += ', ';
+          continue;
+        }
+
         // HANDLE STANDARD LOOKUPS
         if (dotIndex != -1 && !isCustomRel) {
           // dont include fields that walk two objects
@@ -133,11 +139,32 @@ public with sharing class ChildRecordService {
 
   @AuraEnabled
   public static Map<Id, Map<String, String>> updateChildRecords(
-    List<SObject> childRecords
+    List<SObject> childRecords,
+    List<String> fieldNames
   ) {
     Schema.SObjectType type = childRecords.get(0).getSObjectType();
     Boolean canUpdate = type.getDescribe().isUpdateable();
     if (canUpdate) {
+      for (Integer i = 0; i < childRecords.size(); i++) {
+        SObject childRecord = childRecords.get(i);
+        Schema.DescribeSObjectResult childDescribe = childRecord.getSObjectType()
+          .getDescribe();
+        for (String field : fieldNames) {
+          System.debug(field);
+          DescribeFieldResult fieldDescribe = childDescribe.fields.getMap()
+            .get(field)
+            .getDescribe();
+          if (!fieldDescribe.isUpdateable()) {
+            System.debug(fieldDescribe.getLabel());
+            throw new AuraHandledException(
+              'You do not have access to update ' +
+              fieldDescribe.getLabel() +
+              ' on the requested records'
+            );
+          }
+        }
+      }
+
       Map<Id, Map<String, String>> errorMap = new Map<Id, Map<String, String>>();
       Database.SaveResult[] srList = Database.update(childRecords, false);
       for (Integer i = 0; i < srList.size(); i++) {

@@ -7,6 +7,8 @@ import getCount from "@salesforce/apex/ChildRecordService.getCount";
 
 import getRecordTypeIdForList from "@salesforce/apex/RecordTypeService.getRecordTypeIdForList";
 
+import getNameField from "@salesforce/apex/NameFieldService.getNameField";
+
 import getChildRecords from "@salesforce/apex/ChildRecordService.getChildRecords";
 import updateChildRecords from "@salesforce/apex/ChildRecordService.updateChildRecords";
 import deleteChildRecord from "@salesforce/apex/ChildRecordService.deleteChildRecord";
@@ -337,12 +339,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
         if (fieldApiName.includes(".")) {
           normalizedApiName = lookupId.replace(".", "");
         }
-        let fielDetails = this.childFields[normalizedApiName];
-        if (fielDetails && fielDetails.dataType === "EncryptedString") {
+        let fieldDetails = this.childFields[normalizedApiName];
+        if (fieldDetails && fieldDetails.dataType === "EncryptedString") {
           return false;
         }
 
-        return !!fielDetails;
+        return !!fieldDetails;
       })
       .map((col) => {
         let { fieldApiName, lookupId, label } = col;
@@ -366,6 +368,15 @@ export default class Editor extends NavigationMixin(LightningElement) {
                   fieldName: fieldDetail.relationshipName
                 }
               : null,
+            referenceNameField: isRef
+              ? this.referenceNameFieldMap.find(
+                  (nameFieldObj) =>
+                    Object.keys(nameFieldObj)[0] === normalizedApiName
+                )[normalizedApiName]
+              : null,
+            referenceLabel: isRef
+              ? fieldApiName.substring(fieldApiName.indexOf(".") + 1)
+              : null,
             referenceIcon: isRef
               ? this.referenceIconMap.find(
                   (icon) => Object.keys(icon)[0] === normalizedApiName
@@ -382,6 +393,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
           hideDefaultActions: this.isStandalone || this.modalIsOpen,
           fieldName: normalizedApiName,
           fieldDetail,
+          referenceLabel: isRef
+            ? fieldApiName.substring(fieldApiName.indexOf(".") + 1)
+            : null,
           lookupId,
           sortable: fieldDetail.sortable,
           editable: true,
@@ -477,7 +491,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
           }`
         : ""
     }`;
-    window.console.log(srt);
     return srt;
   }
 
@@ -530,26 +543,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
       limitString,
       offsetString
     };
-    // let queryString = `SELECT Id, ${this.relatedListInfo.columns
-    //   .filter(({ fieldApiName, lookupId }) => {
-    //     let normalizedApiName = fieldApiName;
-    //     if (fieldApiName.includes(".")) {
-    //       normalizedApiName = lookupId.replace(".", "");
-    //     }
-    //     let fielDetails = this.childFields[normalizedApiName];
-    //     if (fielDetails && fielDetails.dataType === "EncryptedString") {
-    //       return false;
-    //     }
-
-    //     return !!fielDetails;
-    //   })
-    //   .map((c) => c.fieldApiName)
-    //   .join(", ")} FROM ${this.childObjectApiName} WHERE ${
-    //   this.relationshipField
-    // } = '${this.recordId}' ${
-    //   customSortString !== null ? customSortString : sortString
-    // } ${limitString} ${offsetString}`;
-    // return queryString;
   }
 
   buildCountQueryString() {
@@ -585,16 +578,38 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   async updateChildRecords(records) {
-    let childRecords = records
-      .filter((record) => {
-        return !!this.cellStatusMap[record.Id];
-      })
-      .map((r) => {
-        let clone = { ...r };
-        delete clone.RecordTypeId;
-        return clone;
+    const prepareRecords = (recs, fieldInfo) => {
+      return recs
+        .filter((record) => {
+          return !!this.cellStatusMap[record.Id];
+        })
+        .map((r) => {
+          let clone = { ...r };
+          delete clone.RecordTypeId;
+          for (let field of Object.keys(clone)) {
+            if (field === "Id") {
+              continue;
+            }
+            if (!fieldInfo[field] || !fieldInfo[field].updateable) {
+              delete clone[field];
+            }
+          }
+          return clone;
+        });
+    };
+
+    let childRecords = prepareRecords(records, this.childFields);
+
+    let fieldNames = childRecords.reduce((fields, rec) => {
+      Object.keys(rec).forEach((field) => {
+        if (field !== "Id") {
+          fields.add(field);
+        }
       });
-    return updateChildRecords({ childRecords });
+      return fields;
+    }, new Set());
+
+    return updateChildRecords({ childRecords, fieldNames });
   }
 
   async commitRecordChange({ detail: { isSave } }, modalTrigger = false) {
@@ -609,20 +624,22 @@ export default class Editor extends NavigationMixin(LightningElement) {
       } catch (e) {
         this.resetErrors();
         this.cellStatusMap = {};
-        // TODO figure out name and update for lookup values
         this.resetFuncs.forEach((o) => {
           o.reset(false);
           o.called = true;
         });
         this.resetFuncs = this.resetFuncs.filter((o) => !o.called);
         this.modalIsOpen = false;
+        console.error(e);
         this.dispatchEvent(
           new ShowToastEvent({
             title: "Unable to update records",
-            message: e.body.message,
+            message: e.body ? e.body.message : "Something went wrong",
             variant: "error"
           })
         );
+        this.refreshingTable = false;
+        return;
       }
 
       let commitAttemptCount = Object.keys(this.cellStatusMap).length;
@@ -648,7 +665,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
         let errorObj = {
           rows: {}
         };
-        window.console.log(JSON.stringify(errors, null, 2));
 
         Object.keys(errors).forEach((id, index) => {
           let errorKeys = Object.keys(errors[id]);
@@ -738,8 +754,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
     if (modalTrigger) {
       this.resetColumnsEdit();
     }
-
-    return !this.hasErrors;
   }
 
   resetErrors() {
@@ -1044,7 +1058,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
           }`
         : ""
     }`;
-    window.console.log(sortString);
     this.getChildRecords(
       this.buildQueryString(this.currentOffset, sortString)
     ).then((records) => {
@@ -1239,38 +1252,61 @@ export default class Editor extends NavigationMixin(LightningElement) {
     return savedColumnWidthMap;
   }
 
-  referenceIconMap = {};
+  referenceIconMap = [];
+  referenceNameFieldMap = [];
   async connectedCallback() {
-    let iconPromises = this.relatedListInfo.columns
+    // Owner is intentionally not filtered out
+    let relationshipFields = this.relatedListInfo.columns
       .map(({ fieldApiName, lookupId }) => {
         let normalizedApiName = fieldApiName.includes(".")
           ? lookupId.replace(".", "")
           : fieldApiName;
-        let fieldDetail = this.childFields[normalizedApiName] || {};
-
-        let {
-          relationshipName,
-          referenceToInfos: [ref]
-        } = fieldDetail;
-        if (relationshipName) {
-          if (relationshipName === "Owner") {
-            return Promise.resolve({ [normalizedApiName]: "standard:user" });
-          }
-          return this.fetchIcon(ref.apiName).then((iconName) => {
-            return { [normalizedApiName]: iconName };
-          });
+        let fieldDetail = this.childFields[normalizedApiName];
+        if (fieldDetail.relationshipName) {
+          return {
+            relationshipName: fieldDetail.relationshipName,
+            referenceToInfos: fieldDetail.referenceToInfos,
+            normalizedApiName
+          };
         }
         return null;
       })
+      .filter((rObj) => !!rObj);
+
+    let nameFieldPromises = relationshipFields.map((rObj) => {
+      return getNameField({
+        objectName: rObj.referenceToInfos[0].apiName
+      }).then((nameField) => {
+        return { [rObj.normalizedApiName]: nameField };
+      });
+    });
+
+    let iconPromises = relationshipFields
+      .map((rObj) => {
+        let {
+          referenceToInfos: [ref],
+          normalizedApiName
+        } = rObj;
+
+        return this.fetchIcon(ref.apiName).then((iconName) => {
+          return { [normalizedApiName]: iconName };
+        });
+      })
       .filter((p) => !!p);
 
-    let [count, records, iconName, ...referenceIcons] = await Promise.all([
+    let [count, records, iconName, ...referencePromises] = await Promise.all([
       this.getRecordCount(this.buildCountQueryString()),
       this.getChildRecords(this.buildQueryString()),
       this.fetchIcon(this.childObjectApiName),
-      ...iconPromises
+      ...iconPromises,
+      ...nameFieldPromises
     ]);
-    this.referenceIconMap = referenceIcons;
+    this.referenceIconMap = [
+      ...referencePromises.slice(0, iconPromises.length)
+    ];
+    this.referenceNameFieldMap = [
+      ...referencePromises.slice(iconPromises.length)
+    ];
 
     this.tableColumns = this.populateTableColumns(this.relatedListInfo);
     this.totalRecordsCount = count;
@@ -1285,43 +1321,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
   disconnectedCallback() {
     if (this.intervalId) {
       window.clearInterval(this.intervalId);
-    }
-  }
-
-  getColumnWidth(totalWidth, columnCount, dataType) {
-    switch (dataType) {
-      case "Address":
-      case "ComplexValue":
-      case "EncryptedString":
-      case "Location":
-      case "Base64": {
-        return 50;
-      }
-      case "Currency":
-      case "Date":
-      case "Int":
-      case "DateTime":
-      case "Double":
-      case "Percent":
-      case "Time":
-      case "Boolean": {
-        return Math.round((totalWidth / columnCount) * 0.75);
-      }
-      case "Email":
-      case "String":
-      case "MultiPicklist":
-      case "Phone":
-      case "Picklist":
-      case "Url":
-      case "ComboBox": {
-        return Math.round(totalWidth / columnCount);
-      }
-      case "TextArea":
-      case "Reference": {
-        return Math.round((totalWidth / columnCount) * 1.25);
-      }
-      default:
-        return Math.round(totalWidth / columnCount);
     }
   }
 }

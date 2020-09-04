@@ -14,7 +14,7 @@
             href={link}
             onclick={navigateToLookup}
             style="overflow: hidden; text-overflow: ellipsis;"
-            >{currentReferenceValue.Name}</a
+            >{linkLabel}</a
           >
           <c-formatted-tile-value
             if:false={link}
@@ -108,6 +108,7 @@
       >
         <c-lookup-input
           initial-value={lookupValue}
+          name-field={referenceNameField}
           icon-name={referenceIcon}
           object-api-name={lookupObjectApiName}
           onselection={changeInputValue}

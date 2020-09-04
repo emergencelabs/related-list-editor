@@ -18,7 +18,6 @@ export default class Tile extends NavigationMixin(LightningElement) {
     return this.record[this.nameField];
   }
 
-  // TODO: sort out the deal with reference fields here - will it always be Name???
   get fields() {
     if (this.record) {
       return this.columns
@@ -29,7 +28,7 @@ export default class Tile extends NavigationMixin(LightningElement) {
             : null;
           let value = this.record[c.fieldName];
           if (referenceValue) {
-            value = referenceValue.Name;
+            value = referenceValue[c.referenceLabel];
           } else if (isReference && !referenceValue) {
             value = "";
           }

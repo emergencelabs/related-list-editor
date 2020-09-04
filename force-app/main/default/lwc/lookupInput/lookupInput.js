@@ -6,6 +6,7 @@ export default class LookupInput extends LightningElement {
   @api iconName;
   @api objectApiName;
   @api initialValue;
+  @api nameField;
   @api defaultEdit = false;
   @track currentValue;
 
@@ -25,7 +26,7 @@ export default class LookupInput extends LightningElement {
     // }
     let isBlank = !newSelection;
     let value = isBlank ? "" : newSelection.Id;
-    let refName = isBlank ? "" : newSelection.Name;
+    let refName = isBlank ? "" : newSelection[this.nameField];
     this.dispatchEvent(
       new CustomEvent("selection", {
         detail: {
@@ -40,6 +41,7 @@ export default class LookupInput extends LightningElement {
   lookupSearch({ target, detail: { searchTerm } }) {
     search({
       searchTerm,
+      nameField: this.nameField,
       objectApiName: this.objectApiName,
       iconName: this.iconName
     })
@@ -67,7 +69,7 @@ export default class LookupInput extends LightningElement {
     if (value && value.Id) {
       this.resetValue = {
         id: value.Id,
-        title: value.Name,
+        title: value[this.nameField],
         sObjectType: this.objectApiName,
         icon: this.iconName
       };

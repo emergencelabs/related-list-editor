@@ -12,6 +12,8 @@ export default class InputCell extends LightningElement {
   @api recordTypeId;
   @api defaultEdit = false;
   @api referenceIcon;
+  @api referenceNameField;
+  @api referenceLabel;
 
   @track editing = false;
   @track isHovering = false;
@@ -126,6 +128,13 @@ export default class InputCell extends LightningElement {
       : null;
   }
 
+  get linkLabel() {
+    if (this.link) {
+      return this.currentReferenceValue[this.referenceLabel];
+    }
+    return null;
+  }
+
   navigateToLookup(event) {
     event.preventDefault();
     this.navigateToRecord(null, this.currentReferenceValue.Id);
@@ -171,8 +180,7 @@ export default class InputCell extends LightningElement {
 
   get lookupObjectApiName() {
     if (this.fieldDetail.referenceToInfos) {
-      let name = this.fieldDetail.referenceToInfos[0].apiName;
-      return name === "Group" ? "User" : name;
+      return this.fieldDetail.referenceToInfos[0].apiName;
     }
     return null;
   }
@@ -189,7 +197,7 @@ export default class InputCell extends LightningElement {
       return {
         id: this.currentReferenceValue.Id,
         sObjectType: this.lookupObjectApiName,
-        title: this.currentReferenceValue.Name,
+        title: this.currentReferenceValue[this.referenceNameField],
         icon: this.referenceIcon
       };
     }
@@ -470,17 +478,12 @@ export default class InputCell extends LightningElement {
         })
       );
     }
+
     if (
-      this.referenceValue &&
-      !Object.keys(this.referenceValue).includes("Name")
+      this.fieldDetail.relationshipName === "Owner" ||
+      (this.referenceValue && this.referenceLabel !== this.referenceNameField)
     ) {
       this.overrideDisable = true;
-      this.latestReferenceValue = {
-        ...this.referenceValue,
-        Name: this.referenceValue[
-          Object.keys(this.referenceValue).filter((key) => key !== "Id")[0]
-        ]
-      };
     }
 
     this.originalValue = this.value;

@@ -17,6 +17,7 @@ export default class Lookup extends LightningElement {
   @api customKey;
   @api fixedResultsLocation = false;
   @api defaultEdit = false;
+  @api nameField;
 
   // Template properties
   searchResultsLocalState = [];
@@ -183,7 +184,7 @@ export default class Lookup extends LightningElement {
 
     const selectedIds = this._curSelection.map((sel) => {
       if (sel) {
-        return { Id: sel.id, Name: sel.title };
+        return { Id: sel.id, [this.nameField]: sel.title };
       }
       return sel;
     });

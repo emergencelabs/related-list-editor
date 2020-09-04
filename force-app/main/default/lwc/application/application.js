@@ -136,14 +136,12 @@ export default class Application extends LightningElement {
   // but then it won't be there the next time
   async connectedCallback() {
     this.listener = ({ origin, data: apiResponse = {} }) => {
-      window.console.log(origin, `${this.urlBase}--rle.visualforce.com`);
       if (
         (origin === `${this.urlBase}--rle.visualforce.com` ||
           origin.includes(`${this.urlBase}--rle`)) &&
         this.listSelection &&
         apiResponse.object === this.objectApiName
       ) {
-        window.console.log(apiResponse);
         this.relatedListInfo = apiResponse.data.relatedLists.find(
           (rli) =>
             rli.sobject === this.parsedListDetails.childObject &&

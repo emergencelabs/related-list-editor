@@ -19,7 +19,9 @@ export default class Table extends LightningDatatable {
         "objectApiName",
         "recordTypeId",
         "defaultEdit",
-        "referenceIcon"
+        "referenceIcon",
+        "referenceNameField",
+        "referenceLabel"
       ]
     }
   };
@@ -36,12 +38,6 @@ export default class Table extends LightningDatatable {
   connectedCallback() {
     super.connectedCallback();
     // a promise but nothing to do once resolved
-    loadStyle(this, CellStyling).then(() => {
-      //this.findElement().style.paddingBottom = "45px";
-      // if (this.noScroll) {
-      //   // window.console.log("no scroll");
-      //   // this.findElement().style.overflow = "unset";
-      // }
-    });
+    loadStyle(this, CellStyling);
   }
 }

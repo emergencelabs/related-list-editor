@@ -4,6 +4,7 @@ public with sharing class LookupController {
   @AuraEnabled
   public static List<LookupSearchResult> search(
     String searchTerm,
+    String nameField,
     String objectApiName,
     String iconName
   ) {
@@ -17,7 +18,9 @@ public with sharing class LookupController {
         searchTerm +
         '\' IN ALL FIELDS RETURNING ' +
         objectApiName +
-        '(Name) LIMIT 5';
+        '(' +
+        nameField +
+        ') LIMIT 5';
       List<List<SObject>> sObjectLists = search.query(SearchQUERY);
       List<SObject> targetList = sObjectLists[0];
       for (SObject obj : targetList) {
@@ -26,7 +29,7 @@ public with sharing class LookupController {
             obj.Id,
             objectApiName,
             iconName,
-            (String) obj.get('Name'),
+            (String) obj.get(nameField),
             null
           )
         );
