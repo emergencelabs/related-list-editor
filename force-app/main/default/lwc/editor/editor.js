@@ -490,7 +490,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
         ? `ASC NULLS LAST${
             this.secondarySortDetails.column
               ? `, ${this.secondarySortDetails.column} ${
-                  this.secondarySortDetails === "asc"
+                  this.secondarySortDetails.ascending
                     ? "ASC NULLS LAST"
                     : "DESC NULLS LAST"
                 }`
@@ -499,7 +499,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
         : `DESC  NULLS LAST${
             this.secondarySortDetails.column
               ? `, ${this.secondarySortDetails.column} ${
-                  this.secondarySortDetails === "asc"
+                  this.secondarySortDetails.ascending
                     ? "ASC NULLS LAST"
                     : "DESC NULLS LAST"
                 }`
@@ -1038,7 +1038,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     let sortString = `ORDER BY ${fieldName} ${sortDirection.toUpperCase()} NULLS LAST${
       this.secondarySortDetails.column
         ? `, ${this.secondarySortDetails.column} ${
-            this.secondarySortDetails === "asc"
+            this.secondarySortDetails.ascending
               ? "ASC NULLS LAST"
               : "DESC NULLS LAST"
           }`

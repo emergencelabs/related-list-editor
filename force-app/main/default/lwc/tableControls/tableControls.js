@@ -11,7 +11,6 @@ export default class TableControls extends LightningElement {
   togglePopover = () => {
     this.showingPopover = !this.showingPopover;
   };
-  s;
 
   get style() {
     if (this.noScroll) {

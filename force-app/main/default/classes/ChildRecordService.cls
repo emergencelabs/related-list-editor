@@ -22,42 +22,51 @@ public with sharing class ChildRecordService {
         String field = fields.get(i);
         System.debug(field);
         Integer dotIndex = field.indexOf('.');
-        if (dotIndex >= 0) {
+        String lookupObject = null;
+        Integer relIndex = -1;
+        Boolean isCustomRel = false;
+        // DETERMINE REFERENCE OBJECT AND IF CUSTOM
+        if (dotIndex != -1) {
+          lookupObject = field.substring(0, dotIndex);
+          relIndex = lookupObject.lastIndexOf('__r');
+          isCustomRel = lookupObject.endsWith('__r');
+        }
+        // HANDLE STANDARD LOOKUPS
+        if (dotIndex != -1 && !isCustomRel) {
           // dont include fields that walk two objects
           if (field.indexOf('.', dotIndex + 1) >= 0) {
             continue;
           }
-          //check user access on object for lookup
-          String lookupObject = field.substring(0, dotIndex);
           if (lookupObject == 'Owner') {
             lookupObject = 'User';
           }
-          System.debug(lookupObject);
           Schema.SObjectType lookupType = Schema.getGlobalDescribe()
             .get(lookupObject);
 
-          Schema.DescribeSObjectResult lookupDescribe = lookupType.getDescribe();
-          if (lookupDescribe.isAccessible()) {
-            //check user access on field for object
-            String lookupFieldName = field.substring(dotIndex + 1);
-            System.debug(lookupFieldName);
-            Schema.DescribeFieldResult lookupFieldDescribe = lookupDescribe.fields.getMap()
-              .get(lookupFieldName)
-              .getDescribe();
-            if (
-              lookupFieldDescribe.isAccessible() &&
-              !lookupFieldDescribe.isEncrypted()
-            ) {
-              fieldString += field;
-              fieldString += ', ';
+          if (lookupType != null) {
+            Schema.DescribeSObjectResult lookupDescribe = lookupType.getDescribe();
+            if (lookupDescribe.isAccessible()) {
+              String lookupFieldName = field.substring(dotIndex + 1);
+              Schema.DescribeFieldResult lookupFieldDescribe = lookupDescribe.fields.getMap()
+                .get(lookupFieldName)
+                .getDescribe();
+              if (
+                lookupFieldDescribe.isAccessible() &&
+                !lookupFieldDescribe.isEncrypted()
+              ) {
+                fieldString += field;
+                fieldString += ', ';
+              }
             }
           }
+          // HANDLE REGULAR FIELDS & CUSTOM LOOKUPS
         } else {
+          String fieldName = !isCustomRel
+            ? field
+            : lookupObject.substring(0, relIndex + 2) + 'c';
           Schema.DescribeFieldResult fieldDescribe = childDescribe.fields.getMap()
-            .get(field)
+            .get(fieldName)
             .getDescribe();
-          //check that field isAccessible to user
-          //check that field is not encrypted
           if (fieldDescribe.isAccessible() && !fieldDescribe.isEncrypted()) {
             fieldString += field;
             fieldString += ', ';
