@@ -9,10 +9,22 @@ public with sharing class ChildRecordServiceTest {
     String accountName = 'Fake Account';
     Account a = new Account(Name = accountName);
     insert a;
-    List<sObject> accounts = ChildRecordService.getChildRecords(
-      'SELECT Id, Name FROM Account'
+    Contact c = new Contact(
+      AccountId = a.Id,
+      FirstName = 'Myles',
+      LastName = 'Linder'
     );
-    System.assert(accounts.get(0).get('Name') == accountName);
+    insert c;
+    List<SObject> contacts = ChildRecordService.getChildRecords(
+      new List<String>{ 'FirstName' },
+      'Contact',
+      'AccountId',
+      a.Id,
+      'ORDER BY NAME ASC NULLS LAST',
+      'LIMIT 10',
+      'OFFSET 0'
+    );
+    System.assert(contacts.get(0).get('FirstName') == c.FirstName);
   }
 
   @IsTest
@@ -20,7 +32,13 @@ public with sharing class ChildRecordServiceTest {
     String accountName = 'Fake Account';
     Account a = new Account(Name = accountName);
     insert a;
-    Integer count = ChildRecordService.getCount('SELECT COUNT() FROM Account');
+    Contact c = new Contact(
+      AccountId = a.Id,
+      FirstName = 'Myles',
+      LastName = 'Linder'
+    );
+    insert c;
+    Integer count = ChildRecordService.getCount('Contact', 'AccountId', a.Id);
     System.assert(count == 1);
   }
 
@@ -29,11 +47,24 @@ public with sharing class ChildRecordServiceTest {
     String accountName = 'Fake Account';
     Account a = new Account(Name = accountName);
     insert a;
-    ChildRecordService.deleteChildRecord(a);
-    List<sObject> accounts = ChildRecordService.getChildRecords(
-      'SELECT Id, Name FROM Account'
+    Contact c = new Contact(
+      AccountId = a.Id,
+      FirstName = 'Myles',
+      LastName = 'Linder'
     );
-    System.assert(accounts.size() == 0);
+    insert c;
+    ChildRecordService.deleteChildRecord(c);
+    List<sObject> contacts = ChildRecordService.getChildRecords(
+      new List<String>{ 'Name' },
+      'Contact',
+      'AccountId',
+      c.Id,
+      'ORDER BY NAME ASC NULLS LAST',
+      'LIMIT 10',
+      'OFFSET 0'
+    );
+
+    System.assert(contacts.size() == 0);
   }
 
   @IsTest

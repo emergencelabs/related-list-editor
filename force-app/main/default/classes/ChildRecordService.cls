@@ -32,6 +32,7 @@ public with sharing class ChildRecordService {
           if (lookupObject == 'Owner') {
             lookupObject = 'User';
           }
+          System.debug(lookupObject);
           Schema.SObjectType lookupType = Schema.getGlobalDescribe()
             .get(lookupObject);
 
