@@ -1256,6 +1256,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
   referenceNameFieldMap = [];
   async connectedCallback() {
     // Owner is intentionally not filtered out
+
     let relationshipFields = this.relatedListInfo.columns
       .map(({ fieldApiName, lookupId }) => {
         let normalizedApiName = fieldApiName.includes(".")
@@ -1316,6 +1317,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
     this.canRequestMore = this.records.length === this.layoutModeLimit;
 
     this.loading = false;
+    console.log(JSON.parse(JSON.stringify(this.childFields)));
   }
 
   disconnectedCallback() {

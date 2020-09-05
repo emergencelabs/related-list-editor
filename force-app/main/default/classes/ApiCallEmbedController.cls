@@ -2,11 +2,22 @@ public with sharing class ApiCallEmbedController {
   public String pageLayoutDescribeResponse { get; set; }
   public String targetOrigin { get; set; }
   public String objectApiName { get; set; }
+  public Boolean readyToSend { get; set; }
   public ApiCallEmbedController() {
+    this.readyToSend = false;
+    String url = System.URL.getOrgDomainUrl().toExternalForm();
+    this.targetOrigin =
+      url.substring(0, url.indexOf('.') + 1) + 'lightning.force.com';
+    this.getRelatedListDetails();
+  }
+
+  public void setReady() {
+    this.readyToSend = true;
+  }
+
+  public void getRelatedListDetails() {
     PageReference currentPage = ApexPages.currentPage();
     Map<String, String> parameters = currentPage.getParameters();
-    this.targetOrigin = EncodingUtil.urlDecode(parameters.get('u'), 'UTF-8')
-      .escapeHtml4();
     String apiVersion = parameters.get('v') == null
       ? '49.0'
       : parameters.get('v');

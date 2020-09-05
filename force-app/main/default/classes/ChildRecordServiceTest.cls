@@ -74,7 +74,8 @@ public with sharing class ChildRecordServiceTest {
     insert a;
     a.Name = 'New Name';
     Map<Id, Map<String, String>> errorMap = ChildRecordService.updateChildRecords(
-      new List<SObject>{ a }
+      new List<SObject>{ a },
+      new List<String>{ 'Name' }
     );
     System.assert(errorMap.keySet().size() == 0);
   }
@@ -85,7 +86,8 @@ public with sharing class ChildRecordServiceTest {
     insert a;
     a.Name = null;
     Map<Id, Map<String, String>> errorMap = ChildRecordService.updateChildRecords(
-      new List<SObject>{ a }
+      new List<SObject>{ a },
+      new List<String>{ 'Name' }
     );
     System.assert(errorMap.keySet().size() > 0);
   }

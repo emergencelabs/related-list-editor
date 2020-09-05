@@ -9,6 +9,6 @@ public with sharing class ApiCallEmbedControllerTest {
     ApexPages.currentPage().getParameters().put('r', '012000000000000AAA');
 
     ApiCallEmbedController controller = new ApiCallEmbedController();
-    System.assert(controller.targetOrigin == 'https://google.com');
+    System.assert(controller.objectApiName == 'Account');
   }
 }

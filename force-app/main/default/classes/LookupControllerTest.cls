@@ -10,6 +10,7 @@ public with sharing class LookupControllerTest {
 
     List<LookupSearchResult> searchResult = LookupController.search(
       'Bur',
+      'Name',
       'Account',
       'standard:account'
     );

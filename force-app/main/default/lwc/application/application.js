@@ -101,9 +101,7 @@ export default class Application extends LightningElement {
       !this.objectApiName.includes("javascript") &&
       !this.recordTypeId.includes("javascript")
     ) {
-      return `${this.urlBase}--rle.visualforce.com/apex/ApiCallEmbed?v=49.0&n=${
-        this.objectApiName
-      }&r=${this.recordTypeId}&u=${encodeURIComponent(window.location.origin)}`;
+      return `${this.urlBase}--rle.visualforce.com/apex/ApiCallEmbed?v=49.0&n=${this.objectApiName}&r=${this.recordTypeId}`;
     }
     return null;
   }
@@ -131,27 +129,36 @@ export default class Application extends LightningElement {
     window.removeEventListener("message", this.listener);
   }
   listener;
-  // TODO: why does the listener execute so many times?
-  // i can remove the listener once i get the answer i want
-  // but then it won't be there the next time
+
+  setIFrameConnection() {
+    let iframe = this.template.querySelector("iframe");
+    iframe.contentWindow.postMessage(
+      true,
+      `${this.urlBase}--rle.visualforce.com`
+    );
+  }
+
   async connectedCallback() {
     this.listener = ({ origin, data: apiResponse = {} }) => {
+      console.log(origin);
       if (
         (origin === `${this.urlBase}--rle.visualforce.com` ||
           origin.includes(`${this.urlBase}--rle`)) &&
-        this.listSelection &&
-        apiResponse.object === this.objectApiName
+        this.listSelection
       ) {
-        this.relatedListInfo = apiResponse.data.relatedLists.find(
-          (rli) =>
-            rli.sobject === this.parsedListDetails.childObject &&
-            rli.field === this.parsedListDetails.relationshipField
-        );
+        if (apiResponse.object === this.objectApiName) {
+          console.log("inside origin check");
+          this.relatedListInfo = apiResponse.data.relatedLists.find(
+            (rli) =>
+              rli.sobject === this.parsedListDetails.childObject &&
+              rli.field === this.parsedListDetails.relationshipField
+          );
 
-        this.loading = false;
+          this.loading = false;
+        }
       }
     };
-    this.recordTypeId = await this.findRecordTypeId();
     window.addEventListener("message", this.listener);
+    this.recordTypeId = await this.findRecordTypeId();
   }
 }

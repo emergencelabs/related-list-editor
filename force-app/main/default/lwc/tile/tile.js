@@ -37,9 +37,12 @@ export default class Tile extends NavigationMixin(LightningElement) {
             label: c.label,
             dataType: c.fieldDetail.dataType,
             value,
-            link: referenceValue
-              ? `/lightning/r/${referenceValue.Id}/view`
-              : null,
+            link:
+              referenceValue &&
+              referenceValue.Id &&
+              !referenceValue.Id.includes("javascript")
+                ? `/lightning/r/${referenceValue.Id}/view`
+                : null,
             htmlFormatted: c.fieldDetail.htmlFormatted
           };
         })
