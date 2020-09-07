@@ -79,8 +79,7 @@ public with sharing class ChildRecordService {
           }
         }
       }
-      System.debug(fieldString);
-      return Database.query(
+      String queryString =
         'SELECT Id, ' +
         fieldString.substring(0, fieldString.length() - 2) +
         ' FROM ' +
@@ -94,8 +93,9 @@ public with sharing class ChildRecordService {
         ' ' +
         String.escapeSingleQuotes(limitString) +
         ' ' +
-        String.escapeSingleQuotes(offsetString)
-      );
+        String.escapeSingleQuotes(offsetString);
+      System.debug(queryString);
+      return Database.query(queryString);
     } else {
       return new List<SObject>();
     }

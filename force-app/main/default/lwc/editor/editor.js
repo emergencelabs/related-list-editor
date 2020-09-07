@@ -766,9 +766,9 @@ export default class Editor extends NavigationMixin(LightningElement) {
     //   this.template.querySelector(".modal-table-container") ||
     //   this.template.querySelector(".table-container");
     // let containerWidth = el.getBoundingClientRect().width;
+    let storedWidths = this.getColumnWidthsFromStorage();
     this.tableColumns = this.tableColumns.map((detail) => {
       let clone = { ...detail };
-      let storedWidths = this.getColumnWidthsFromStorage();
       if (storedWidths) {
         clone.initialWidth = storedWidths[detail.fieldName];
       }
@@ -784,7 +784,7 @@ export default class Editor extends NavigationMixin(LightningElement) {
       return colDef;
     });
     window.localStorage.removeItem(
-      `${this.objectApiName}:${this.childObjectApiName}`
+      `${this.objectApiName}:${this.childObjectApiName}:${this.tableType}`
     );
   }
 
@@ -1034,8 +1034,13 @@ export default class Editor extends NavigationMixin(LightningElement) {
     };
 
     this.secondarySortDetails.column = null;
+
     this.tableColumns = this.tableColumns.map((tc) => {
       let uTC = { ...tc };
+      let storedWidths = this.getColumnWidthsFromStorage();
+      if (storedWidths) {
+        uTC.initialWidth = storedWidths[uTC.fieldName];
+      }
       if (uTC.actions) {
         uTC.actions = uTC.actions.map((action) => {
           return {
@@ -1220,6 +1225,13 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   // TODO: consider that this could break for same object but different related list
+
+  get tableType() {
+    if (this.isStandalone) return "full";
+    if (this.modalIsOpen) return "modal";
+    return "preview";
+  }
+
   setColumnWidthsInStorage({ detail: { columnWidths, isUserTriggered } }) {
     if (isUserTriggered) {
       let fieldToColumnWidths = columnWidths.reduce(
@@ -1231,15 +1243,19 @@ export default class Editor extends NavigationMixin(LightningElement) {
         {}
       );
       window.localStorage.setItem(
-        `${this.objectApiName}:${this.childObjectApiName}`,
+        `${this.objectApiName}:${this.childObjectApiName}:${this.tableType}`,
         JSON.stringify(fieldToColumnWidths)
       );
     }
+    //update table columns so that when it gets cloned it works
   }
 
   getColumnWidthsFromStorage() {
+    console.log(
+      `retrrieivng ${this.objectApiName}:${this.childObjectApiName}:${this.tableType}`
+    );
     let savedColumnWidthMap = window.localStorage.getItem(
-      `${this.objectApiName}:${this.childObjectApiName}`
+      `${this.objectApiName}:${this.childObjectApiName}:${this.tableType}`
     );
     if (savedColumnWidthMap) {
       try {
@@ -1255,8 +1271,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
   referenceIconMap = [];
   referenceNameFieldMap = [];
   async connectedCallback() {
-    // Owner is intentionally not filtered out
-
     let relationshipFields = this.relatedListInfo.columns
       .map(({ fieldApiName, lookupId }) => {
         let normalizedApiName = fieldApiName.includes(".")
@@ -1317,7 +1331,6 @@ export default class Editor extends NavigationMixin(LightningElement) {
     this.canRequestMore = this.records.length === this.layoutModeLimit;
 
     this.loading = false;
-    console.log(JSON.parse(JSON.stringify(this.childFields)));
   }
 
   disconnectedCallback() {

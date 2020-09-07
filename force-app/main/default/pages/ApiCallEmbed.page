@@ -1,5 +1,6 @@
 <apex:page controller="ApiCallEmbedController">
   <h1>Nothing to see here.</h1>
+  <code>{!pageLayoutDescribeResponse}</code>
   <apex:form>
     <apex:actionFunction name="setReady" action="{!setReady}" rerender="poster">
     </apex:actionFunction>
