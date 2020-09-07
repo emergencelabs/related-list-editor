@@ -6,6 +6,7 @@ export default class SlottedModal extends LightningElement {
   @api saveButtonVariant = "brand";
   @api size = "large";
   @api blockSave = false;
+  @api showReset = false;
 
   get modalSizingClasses() {
     return `slds-modal slds-fade-in-open slds-modal_${this.size}`;
@@ -20,6 +21,10 @@ export default class SlottedModal extends LightningElement {
 
   close(isSave) {
     this.dispatchEvent(new CustomEvent("close", { detail: { isSave } }));
+  }
+
+  resetColumns(){
+    this.dispatchEvent(new CustomEvent('resetcolumns'))
   }
 
   @api getDimensions() {
