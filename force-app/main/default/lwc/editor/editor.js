@@ -400,24 +400,24 @@ export default class Editor extends NavigationMixin(LightningElement) {
           sortable: fieldDetail.sortable,
           editable: true,
           actions: [
-            {
-              label: "Secondary Sort Ascending",
-              checked: false,
-              name: "sort:asc",
-              disabled:
-                this.columnSortColumn === normalizedApiName ||
-                !fieldDetail.sortable,
-              iconName: "utility:arrowup"
-            },
-            {
-              label: "Secondary Sort Descending",
-              checked: false,
-              name: "sort:desc",
-              disabled:
-                this.columnSortColumn === normalizedApiName ||
-                !fieldDetail.sortable,
-              iconName: "utility:arrowdown"
-            }
+            // {
+            //   label: "Secondary Sort Ascending",
+            //   checked: false,
+            //   name: "sort:asc",
+            //   disabled:
+            //     this.columnSortColumn === normalizedApiName ||
+            //     !fieldDetail.sortable,
+            //   iconName: "utility:arrowup"
+            // },
+            // {
+            //   label: "Secondary Sort Descending",
+            //   checked: false,
+            //   name: "sort:desc",
+            //   disabled:
+            //     this.columnSortColumn === normalizedApiName ||
+            //     !fieldDetail.sortable,
+            //   iconName: "utility:arrowdown"
+            // }
           ]
         };
       });
