@@ -8,6 +8,8 @@ export default class Application extends LightningElement {
   @api recordId;
   @api objectApiName;
 
+  @api pod;
+
   @api listSelection;
   @api isStandalone = false;
 
@@ -136,18 +138,20 @@ export default class Application extends LightningElement {
       true,
       `${this.urlBase}--rle.visualforce.com`
     );
+    iframe.contentWindow.postMessage(
+      true,
+      `${this.urlBase}--rle.${this.pod}.visual.force.com`
+    );
   }
 
   async connectedCallback() {
     this.listener = ({ origin, data: apiResponse = {} }) => {
-      console.log(origin);
       if (
         (origin === `${this.urlBase}--rle.visualforce.com` ||
-          origin.includes(`${this.urlBase}--rle`)) &&
+          origin === `${this.urlBase}--rle.${this.pod}.visual.force.com`) &&
         this.listSelection
       ) {
         if (apiResponse.object === this.objectApiName) {
-          console.log("inside origin check");
           this.relatedListInfo = apiResponse.data.relatedLists.find(
             (rli) =>
               rli.sobject === this.parsedListDetails.childObject &&

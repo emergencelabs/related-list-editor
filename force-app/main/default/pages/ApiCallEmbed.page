@@ -17,7 +17,6 @@
   </apex:outputPanel>
   <script>
     const targetOrigin = `{!JSENCODE(targetOrigin)}`;
-    console.log(targetOrigin);
     const listener = ({ origin, data }) => {
       if (origin === targetOrigin) {
         setReady();

@@ -20,7 +20,6 @@ public with sharing class ChildRecordService {
       String fieldString = '';
       for (Integer i = 0; i < fields.size(); i++) {
         String field = fields.get(i);
-        System.debug(field);
         Integer dotIndex = field.indexOf('.');
         String lookupObject = null;
         Integer relIndex = -1;
@@ -94,7 +93,7 @@ public with sharing class ChildRecordService {
         String.escapeSingleQuotes(limitString) +
         ' ' +
         String.escapeSingleQuotes(offsetString);
-      System.debug(queryString);
+
       return Database.query(queryString);
     } else {
       return new List<SObject>();
@@ -150,12 +149,12 @@ public with sharing class ChildRecordService {
         Schema.DescribeSObjectResult childDescribe = childRecord.getSObjectType()
           .getDescribe();
         for (String field : fieldNames) {
-          System.debug(field);
+
           DescribeFieldResult fieldDescribe = childDescribe.fields.getMap()
             .get(field)
             .getDescribe();
           if (!fieldDescribe.isUpdateable()) {
-            System.debug(fieldDescribe.getLabel());
+
             throw new AuraHandledException(
               'You do not have access to update ' +
               fieldDescribe.getLabel() +

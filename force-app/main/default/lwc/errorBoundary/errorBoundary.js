@@ -1,4 +1,5 @@
 import { LightningElement, api } from "lwc";
+import getPod from "@salesforce/apex/PodService.getPod";
 
 export default class ErrorBoundary extends LightningElement {
   @api flexipageRegionWidth;
@@ -27,5 +28,15 @@ export default class ErrorBoundary extends LightningElement {
   reloadComponent() {
     this.error = null;
     this.stack = null;
+  }
+  _pod;
+  get pod() {
+    if (this._pod) {
+      return this._pod;
+    }
+    return null;
+  }
+  async connectedCallback() {
+    this._pod = await getPod();
   }
 }

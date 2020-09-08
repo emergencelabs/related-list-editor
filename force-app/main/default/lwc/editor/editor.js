@@ -1251,16 +1251,12 @@ export default class Editor extends NavigationMixin(LightningElement) {
   }
 
   getColumnWidthsFromStorage() {
-    console.log(
-      `retrrieivng ${this.objectApiName}:${this.childObjectApiName}:${this.tableType}`
-    );
     let savedColumnWidthMap = window.localStorage.getItem(
       `${this.objectApiName}:${this.childObjectApiName}:${this.tableType}`
     );
     if (savedColumnWidthMap) {
       try {
         savedColumnWidthMap = JSON.parse(savedColumnWidthMap);
-        console.log(savedColumnWidthMap);
       } catch (e) {
         savedColumnWidthMap = null;
       }
