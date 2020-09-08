@@ -1,20 +1,20 @@
 <apex:page controller="ApiCallEmbedController">
   <h1>Nothing to see here.</h1>
-  <code>{!pageLayoutDescribeResponse}</code>
   <apex:form>
     <apex:actionFunction name="setReady" action="{!setReady}" rerender="poster">
     </apex:actionFunction>
   </apex:form>
-
-  <div id="poster">
-    <script render="readyToSend">
-      let targetWindow = window.parent;
-      const passBackOrigin = `{!JSENCODE(targetOrigin)}`;
-      if (targetWindow) {
-        targetWindow.postMessage({ data: JSON.parse(`{!JSENCODE(pageLayoutDescribeResponse)}`), object: `{!JSENCODE(objectApiName)}` }, passBackOrigin);
-      }
-    </script>
-  </div>
+  <apex:outputPanel id="poster">
+    <apex:outputPanel rendered="{!readyToSend}">
+      <script>
+        let targetWindow = window.parent;
+        const passBackOrigin = `{!JSENCODE(targetOrigin)}`;
+        if (targetWindow) {
+          targetWindow.postMessage({ data: JSON.parse(`{!JSENCODE(pageLayoutDescribeResponse)}`), object: `{!JSENCODE(objectApiName)}` }, passBackOrigin);
+        }
+      </script>
+    </apex:outputPanel>
+  </apex:outputPanel>
   <script>
     const targetOrigin = `{!JSENCODE(targetOrigin)}`;
     console.log(targetOrigin);

@@ -23,7 +23,8 @@
     "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "prettier:verify": "prettier --list-different \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "create:package:version": "sfdx force:package:version:create -c -k 'Emergence' -p RLETest2 -w 5",
-    "create:package:new": ""
+    "create:package:new": "",
+    "set-git": " git config --global user.email 'myles@emergencelabs.io' &&  open -a 'Keychain Access'"
   },
   "devDependencies": {
     "@prettier/plugin-xml": "^0.7.2",
